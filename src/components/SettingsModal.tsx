@@ -416,58 +416,186 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Dynamic Theme Override</label>
-                <select 
-                  value={localSettings.themeOverride} 
-                  onChange={(e) => handleUpdateLocalSettings({ themeOverride: e.target.value as any })}
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs rounded-xl p-2.5 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500/20"
-                >
-                  <option value="auto">Auto Seasonal (Date-based)</option>
-                  <option value="none">None (Standard theme)</option>
-                  <option value="valentine">Valentine's Day Theme</option>
-                  <option value="thadingyut">Thadingyut Festival Theme</option>
-                  <option value="thingyan">Thingyan Festival Theme</option>
-                  <option value="christmas">Christmas Theme</option>
-                  <option value="moon">Moon (Night Theme)</option>
-                  <option value="custom">Custom Theme Creator 🛠️</option>
-                </select>
-              </div>
-            </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center justify-between">
+                  <span>Dynamic Theme Override</span>
+                  {localSettings.themeOverride && localSettings.themeOverride.startsWith("custom-") && (
+                    <span className="text-[10px] bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 font-extrabold px-1.5 py-0.5 rounded tracking-wider uppercase border border-indigo-500/20">
+                      Custom Theme Active
+                    </span>
+                  )}
+                </label>
+                <div className="space-y-2">
+                  <select 
+                    value={localSettings.themeOverride} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const updates: Partial<typeof localSettings> = { themeOverride: val };
+                      if (val.startsWith("custom-")) {
+                        updates.selectedCustomThemeId = val;
+                        // Preload selected custom theme settings into the editor
+                        const theme = (localSettings.customThemes || []).find(t => t.id === val);
+                        if (theme) {
+                          loadThemeIntoForm(theme);
+                        }
+                      } else if (val === "custom") {
+                        // Keep current editor fields
+                      }
+                      handleUpdateLocalSettings(updates);
+                    }}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs rounded-xl p-2.5 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500/20"
+                  >
+                    <option value="auto">Auto Seasonal (Date-based)</option>
+                    <option value="none">None (Standard theme)</option>
+                    <option value="valentine">Valentine's Day Theme</option>
+                    <option value="thadingyut">Thadingyut Festival Theme</option>
+                    <option value="thingyan">Thingyan Festival Theme</option>
+                    <option value="christmas">Christmas Theme</option>
+                    <option value="moon">Moon (Night Theme)</option>
+                    <option value="custom">🛠️ Create / Customizer Panel...</option>
+                    
+                    {/* Render saved Custom Themes inside dropdown */}
+                    {(localSettings.customThemes || []).length > 0 && (
+                      <optgroup label="Saved Custom Themes 🎨">
+                        {(localSettings.customThemes || []).map((theme) => (
+                          <option key={theme.id} value={theme.id}>
+                            {theme.icon.length <= 3 ? `${theme.icon} ` : "✨ "}{theme.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
 
-            {/* Custom Emoji overrides for each and all dynamic theme overrides */}
-            <div className="p-3.5 bg-slate-50/50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-850/60 space-y-3 mt-2 animate-in fade-in duration-300">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#5551ff] dark:text-indigo-400 block pb-1 border-b border-slate-100 dark:border-slate-800">
-                Customize All Theme Greeting Emojis (Space Separated)
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {[
-                  { id: "valentine", label: "❤️ Valentine" },
-                  { id: "thadingyut", label: "🏮 Thadingyut" },
-                  { id: "thingyan", label: "💦 Thingyan" },
-                  { id: "christmas", label: "❄️ Christmas" },
-                  { id: "moon", label: "🌙 Moon (Night)" },
-                  { id: "custom", label: "🛠️ Custom Theme" },
-                  { id: "none", label: "✨ Default (None)" }
-                ].map((item) => (
-                  <div key={item.id} className="p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-150/60 dark:border-slate-800/80 space-y-1">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block whitespace-nowrap">{item.label}</span>
-                    <input 
-                      type="text"
-                      value={localSettings.themeEmojis?.[item.id] || ""}
-                      onChange={(e) => {
-                        handleUpdateLocalSettings({
-                          themeEmojis: {
-                            ...(localSettings.themeEmojis || {}),
-                            [item.id]: e.target.value
-                          }
-                        });
-                      }}
-                      className="w-full bg-slate-50/60 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800/80 text-xs font-semibold rounded p-1 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 text-center"
-                      placeholder="e.g. 🎒 🎓"
-                    />
+                  {/* Dynamic Action-Based CRUD Controls directly next to selection */}
+                  <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                    <span className="text-[10px] font-bold text-slate-550 dark:text-slate-400">Theme CRUD Tools:</span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateLocalSettings({ themeOverride: "custom" });
+                          resetThemeForm();
+                          // Scroll smoothly to config panel
+                          const el = document.getElementById("custom-theme-specs-panel");
+                          if (el) el.scrollIntoView({ behavior: "smooth" });
+                        }}
+                        className="text-[10px] bg-white dark:bg-slate-900 text-indigo-600 hover:bg-slate-100 dark:text-indigo-400 dark:hover:bg-slate-800 font-extrabold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors flex items-center"
+                        title="Create a new theme specification"
+                      >
+                        <Plus className="w-3 h-3 mr-1" /> New Theme
+                      </button>
+
+                      {localSettings.themeOverride && localSettings.themeOverride.startsWith("custom-") && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const theme = (localSettings.customThemes || []).find(t => t.id === localSettings.themeOverride);
+                              if (theme) {
+                                loadThemeIntoForm(theme);
+                                const el = document.getElementById("custom-theme-specs-panel");
+                                if (el) el.scrollIntoView({ behavior: "smooth" });
+                              }
+                            }}
+                            className="text-[10px] bg-white dark:bg-slate-900 text-amber-600 hover:bg-slate-100 dark:text-amber-400 dark:hover:bg-slate-800 font-extrabold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors flex items-center"
+                            title="Edit currently active custom theme specs"
+                          >
+                            <Edit className="w-3 h-3 mr-1 text-amber-500" /> Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const targetId = localSettings.themeOverride;
+                              handleDeleteTheme(targetId);
+                              handleUpdateLocalSettings({ themeOverride: "none" });
+                            }}
+                            className="text-[10px] bg-white dark:bg-slate-900 text-rose-600 hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-slate-800 font-extrabold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors flex items-center"
+                            title="Delete this custom theme profile"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1 text-rose-500" /> Delete
+                          </button>
+                        </>
+                      )}
+
+                      {/* Duplicate & Customize Preset themes */}
+                      {localSettings.themeOverride && ["valentine", "thadingyut", "thingyan", "christmas", "moon"].includes(localSettings.themeOverride) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const presetsMap: Record<string, any> = {
+                              valentine: {
+                                name: "Custom Valentine Theme",
+                                icon: "Heart",
+                                baseColor: "border-pink-300 dark:border-pink-900 bg-gradient-to-b from-pink-500 to-rose-600",
+                                rippleColor: "bg-pink-500/20",
+                                shape: "rounded-full",
+                                interactiveEffect: "pulse",
+                                emojis: "❤️ 💖 💫 🌸"
+                              },
+                              moon: {
+                                name: "Custom Lunar Theme",
+                                icon: "Moon",
+                                baseColor: "border-indigo-500/30 dark:border-indigo-800 bg-gradient-to-b from-[#090d16] via-[#121132] to-[#201d4a]",
+                                rippleColor: "bg-indigo-400/40",
+                                shape: "rounded-full",
+                                interactiveEffect: "pulse",
+                                emojis: "🌙 ⭐ ✨ 🌑"
+                              },
+                              christmas: {
+                                name: "Custom Winter Theme",
+                                icon: "TreePine",
+                                baseColor: "border-emerald-300 bg-gradient-to-b from-emerald-600 to-green-700",
+                                rippleColor: "bg-emerald-500/20",
+                                shape: "rounded-full",
+                                interactiveEffect: "pulse",
+                                emojis: "🎄 ❄️ 🎁 ⭐"
+                              },
+                              thadingyut: {
+                                name: "Custom Festival of Lights",
+                                icon: "Flame",
+                                baseColor: "border-amber-300 bg-gradient-to-b from-amber-500 to-orange-600",
+                                rippleColor: "bg-amber-500/20",
+                                shape: "rounded-full",
+                                interactiveEffect: "pulse",
+                                emojis: "🏮 🔥 ✨ 🕯️"
+                              },
+                              thingyan: {
+                                name: "Custom Water Splash Theme",
+                                icon: "Droplets",
+                                baseColor: "border-sky-300 bg-gradient-to-b from-sky-500 to-blue-600",
+                                rippleColor: "bg-sky-500/20",
+                                shape: "rounded-full",
+                                interactiveEffect: "bounce",
+                                emojis: "💦 🌊 🌴 💧"
+                              }
+                            };
+
+                            const foundPreset = presetsMap[localSettings.themeOverride];
+                            if (foundPreset) {
+                              setFormThemeName(foundPreset.name);
+                              setFormThemeIcon(foundPreset.icon);
+                              setFormThemeBaseColor(foundPreset.baseColor);
+                              setFormThemeRippleColor(foundPreset.rippleColor);
+                              setFormThemeShape(foundPreset.shape);
+                              setFormThemeInteractiveEffect(foundPreset.interactiveEffect);
+                              setFormThemeEmojis(foundPreset.emojis);
+                              setEditingThemeId(null); // Clear editing to create check fresh copy
+                              handleUpdateLocalSettings({ themeOverride: "custom" }); // Go to customiser view
+                              
+                              const el = document.getElementById("custom-theme-specs-panel");
+                              if (el) el.scrollIntoView({ behavior: "smooth" });
+                            }
+                          }}
+                          className="text-[10px] bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 hover:bg-indigo-100 dark:text-indigo-400 dark:hover:bg-indigo-950/50 font-extrabold px-2 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900 transition-colors flex items-center"
+                          title="Copy this seasonal template config so you can modify it"
+                        >
+                          <Sliders className="w-3 h-3 mr-1 text-indigo-550" /> Customize Preset
+                        </button>
+                      )}
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
@@ -512,7 +640,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
           </div>
 
           {/* Custom Theme Creator Card */}
-          {localSettings.themeOverride === "custom" && (
+          {true && (
             <div className="space-y-4">
               {/* 1. Theme Selection & Applied Custom Theme Specification Panel */}
               <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">

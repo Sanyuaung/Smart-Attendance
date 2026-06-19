@@ -142,7 +142,38 @@ export default function HeroSection() {
       setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
     }, maxSpeed * 1000 + 500);
   };
+// Dynamic Theme Suitable Colors for icons and styling matching currently active theme
+  const getThemeColorClass = () => {
+    switch (currentTheme) {
+      case "valentine":
+        return "text-pink-500 dark:text-pink-400";
+      case "thadingyut":
+        return "text-amber-500 dark:text-amber-400";
+      case "thingyan":
+        return "text-sky-500 dark:text-sky-450 text-sky-500 dark:text-sky-400";
+      case "christmas":
+        return "text-emerald-500 dark:text-emerald-400";
+      case "moon":
+        return "text-[#38bdf8] dark:text-indigo-400";
+      case "custom": {
+        if (activeCustomTheme) {
+          const baseColor = activeCustomTheme.baseColor;
+          if (baseColor.includes("purple") || baseColor.includes("indigo")) return "text-purple-500 dark:text-purple-400";
+          if (baseColor.includes("orange") || baseColor.includes("red")) return "text-orange-500 dark:text-orange-400";
+          if (baseColor.includes("yellow") || baseColor.includes("amber")) return "text-amber-550 dark:text-amber-400";
+          if (baseColor.includes("emerald") || baseColor.includes("teal") || baseColor.includes("green")) return "text-emerald-500 dark:text-emerald-400";
+          if (baseColor.includes("cyan") || baseColor.includes("sky") || baseColor.includes("blue")) return "text-sky-500 dark:text-sky-400";
+          if (baseColor.includes("pink") || baseColor.includes("rose")) return "text-pink-500 dark:text-pink-400";
+          if (baseColor.includes("lime")) return "text-lime-500 dark:text-lime-400";
+        }
+        return "text-violet-500 dark:text-violet-400";
+      }
+      default:
+        return "text-[#026cdd] dark:text-blue-400";
+    }
+  };
 
+  const themeIconColor = getThemeColorClass();
   const handleToggle = (e: React.MouseEvent) => {
     const now = Date.now();
     if (status === "Checked Out" || status === "Absent") {
@@ -440,11 +471,9 @@ export default function HeroSection() {
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
             Attendance Status
           </span>
-          <span className={`text-3xl font-black tracking-widest uppercase transition-all duration-300 ${
-            isCheckedIn 
-              ? 'text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
-              : 'text-rose-500 dark:text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.3)]'
-            }`}
+
+          <span
+            className={`text-3xl font-black tracking-widest uppercase transition-all duration-300 ${themeIconColor}`}
           >
             {isCheckedIn ? "CHECK IN" : "CHECK OUT"}
           </span>

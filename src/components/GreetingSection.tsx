@@ -3,7 +3,7 @@ import { useStore } from "../store/useStore";
 import { useThemeEngine } from "../hooks/useThemeEngine";
 
 export default function GreetingSection() {
-  const { user } = useStore();
+  const { user, settings } = useStore();
   const { currentTheme } = useThemeEngine();
   const [greeting, setGreeting] = useState("");
   const [subGreeting, setSubGreeting] = useState("");
@@ -26,6 +26,11 @@ export default function GreetingSection() {
       } else if (currentTheme === "christmas") {
         mainG = "Merry Christmas 🎄";
         subG = "Wishing you joy and wonderful moments.";
+      } else if (currentTheme === "custom") {
+        const theme = (settings.customThemes || []).find(t => t.id === settings.selectedCustomThemeId || t.id === settings.themeOverride);
+        const themeSymbol = theme?.icon && theme.icon.length <= 3 ? theme.icon : "🎨";
+        mainG = theme ? `${theme.name} Active ${themeSymbol}` : "Custom Theme Active ✨";
+        subG = "Enjoy your personalized workspace styling!";
       } else {
         if (hour < 12) {
           mainG = `Good Morning, ${user.name.split(' ')[0]} ☀️`;
