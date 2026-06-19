@@ -1,0 +1,10 @@
+{
+  "name": "Smart Attendance",
+  "description": "A modern, premium, mobile-first smart attendance system with dynamic event themes, real-time location tracking, and smart notifications.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
