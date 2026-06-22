@@ -7,9 +7,9 @@ import { Hand, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, Cl
 
 export default function HeroSection() {
   const { status, checkIn, checkOut, settings, images, imageTransitionSpeed, user } = useStore();
-  const { currentTheme, moonPhase } = useThemeEngine();
+  const { currentTheme, moonPhase, activeCustomThemeId, isMoonActive } = useThemeEngine();
   const activeCustomTheme = currentTheme === "custom" 
-    ? (settings.customThemes?.find(t => t.id === settings.selectedCustomThemeId) || null)
+    ? (settings.customThemes?.find(t => t.id === (activeCustomThemeId || settings.selectedCustomThemeId)) || null)
     : null;
   const { weatherStr, isDay, condition } = useWeatherLocation();
   const [particles, setParticles] = useState<{ id: number, x: number, y: number, emoji: string, duration: number, targetX: number, targetY: number, rotation: number, scale: number }[]>([]);
@@ -242,8 +242,11 @@ export default function HeroSection() {
     rippleShapeClass = "rounded-full";
     rippleColor = "bg-indigo-400/40";
     baseColorClass = "border-indigo-500/30 dark:border-indigo-800 bg-gradient-to-b from-[#090d16] via-[#121132] to-[#201d4a] shadow-[0_0_30px_rgba(99,102,241,0.25)]";
+    const customImage = settings.moonCustomPhases?.[moonPhase]?.image;
     const moonEmoji = moonPhase.split(" ")[0] || "🌙";
-    buttonContent = (
+    buttonContent = customImage ? (
+      <img src={customImage} className="w-[204px] h-[204px] rounded-full object-cover transition-transform duration-500 hover:scale-105" alt="Moon Phase" referrerPolicy="no-referrer" />
+    ) : (
       <span className="text-[145px] leading-none select-none filter drop-shadow-[0_0_25px_rgba(255,255,255,0.45)] transition-transform duration-500 hover:rotate-12 animate-pulse block">
         {moonEmoji}
       </span>
@@ -299,11 +302,31 @@ export default function HeroSection() {
     else if (finalInteractive === "pulse") interactiveAnim = "animate-pulse";
     else if (finalInteractive === "spin") interactiveAnim = "animate-spin";
     
-    if (CustomIcon) {
+    const moonPhaseImage = isMoonActive ? settings.moonCustomPhases?.[moonPhase]?.image : null;
+    
+    if (moonPhaseImage) {
+       buttonContent = (
+         <img 
+           src={moonPhaseImage} 
+           className={`w-[204px] h-[204px] rounded-full object-cover transition-transform duration-500 hover:scale-105 ${interactiveAnim}`} 
+           alt="Moon Phase Image" 
+           referrerPolicy="no-referrer" 
+         />
+       );
+    } else if (CustomIcon) {
       buttonContent = (
         <CustomIcon 
           className={`w-24 h-24 text-white fill-white/10 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] ${interactiveAnim}`}
           strokeWidth={1.5}
+        />
+      );
+    } else if (finalIcon.startsWith("http://") || finalIcon.startsWith("https://") || finalIcon.startsWith("data:image/")) {
+      buttonContent = (
+        <img 
+          src={finalIcon} 
+          className={`w-[204px] h-[204px] rounded-full object-cover transition-transform duration-500 hover:scale-105 ${interactiveAnim}`} 
+          alt="Custom Theme Icon" 
+          referrerPolicy="no-referrer" 
         />
       );
     } else {
@@ -340,8 +363,9 @@ export default function HeroSection() {
 
   if (currentTheme === "valentine") {
     themeDescription = "Valentine Theme Mode 💖";
-  } else if (currentTheme === "moon") {
-    themeDescription = `Lunar Alignment: ${moonPhase}`;
+  } else if (currentTheme === "moon" || isMoonActive) {
+    const customDesc = settings.moonCustomPhases?.[moonPhase]?.description;
+    themeDescription = customDesc || `Lunar Alignment: ${moonPhase}`;
   } else if (currentTheme === "christmas") {
     themeDescription = "Holiday Greeting Mode 🎄";
   } else if (currentTheme === "thadingyut") {

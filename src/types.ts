@@ -37,6 +37,7 @@ export interface Settings {
   themeEmojis: Record<string, string>;
   moonThemeEnabled: boolean;
   moonThemeStartTime: string;
+  moonThemeOverrideId?: string;
   soundEnabled: boolean;
   showWeather: boolean;
   showLocation: boolean;
@@ -65,6 +66,7 @@ export interface Settings {
   customThemeInteractiveEffect?: "bounce" | "pulse" | "spin" | "wiggle" | "none";
   customThemes?: CustomThemeDefinition[];
   selectedCustomThemeId?: string;
+  moonCustomPhases?: Record<string, { image?: string, description?: string, customThemeId?: string }>;
 }
 
 export interface AppState {

@@ -371,10 +371,10 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
       />
 
       {/* Settings Dialog box */}
-      <div className="relative bg-white dark:bg-slate-900 w-full max-w-4xl mx-4 rounded-3xl shadow-2xl border border-slate-150 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden transition-all transform scale-100 animate-in fade-in-50 zoom-in-95 duration-200 z-10 animate-fade-in">
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-5xl mx-4 rounded-3xl shadow-2xl border border-slate-150 dark:border-slate-800 flex flex-col h-[700px] max-h-[90vh] overflow-hidden transition-all transform scale-100 animate-in fade-in-50 zoom-in-95 duration-200 z-10 animate-fade-in">
         
         {/* Header - Sleek & Beautiful */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-6 py-5 shrink-0 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 backdrop-blur-sm">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
               <Sliders className="w-5 h-5" />
@@ -396,7 +396,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
         </div>
 
         {/* Content Section - Structured Premium Cards */}
-        <div className="flex flex-1 overflow-hidden min-h-[500px]">
+        <div className="flex flex-1 overflow-hidden">
           
           {/* Sidebar Navigation */}
           <div className="w-1/3 bg-slate-50/50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 p-4 space-y-1.5 overflow-y-auto hidden sm:block">
@@ -915,11 +915,15 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                       value={
                         ["Sparkles", "Star", "Zap", "Coffee", "Gift", "Trophy", "Music", "Rocket", "Heart", "Moon", "TreePine", "Flame", "Droplets", "Smile", "Fingerprint"].includes(formThemeIcon)
                           ? formThemeIcon
-                          : "custom_input"
+                          : (formThemeIcon.startsWith("http://") || formThemeIcon.startsWith("https://") || formThemeIcon.startsWith("data:image/"))
+                            ? "custom_image"
+                            : "custom_input"
                       }
                       onChange={(e) => {
                         if (e.target.value === "custom_input") {
                           setFormThemeIcon("🦄");
+                        } else if (e.target.value === "custom_image") {
+                          setFormThemeIcon("https://");
                         } else {
                           setFormThemeIcon(e.target.value);
                         }
@@ -942,20 +946,42 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                       <option value="Smile">😊 Cheerful Smiling Face</option>
                       <option value="Fingerprint">☝️ Biometric Fingerprint</option>
                       <option value="custom_input">✍️ Write Custom Emoji / Text...</option>
+                      <option value="custom_image">🖼️ Custom Image URL...</option>
                     </select>
 
-                    {!["Sparkles", "Star", "Zap", "Coffee", "Gift", "Trophy", "Music", "Rocket", "Heart", "Moon", "TreePine", "Flame", "Droplets", "Smile", "Fingerprint"].includes(formThemeIcon) && (
-                      <div className="animate-in fade-in slide-in-from-top-1 duration-200 mt-2 space-y-1">
-                        <input
-                          type="text"
-                          value={formThemeIcon}
-                          onChange={(e) => setFormThemeIcon(e.target.value)}
-                          className="w-full bg-indigo-50/50 dark:bg-slate-950/85 border border-indigo-200 dark:border-indigo-900 text-xs rounded-xl p-2.5 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none text-center"
-                          placeholder="Type Emoji standard (🦖) or custom text"
-                          maxLength={15}
-                        />
-                      </div>
-                    )}
+                    {(() => {
+                      const isPredefined = ["Sparkles", "Star", "Zap", "Coffee", "Gift", "Trophy", "Music", "Rocket", "Heart", "Moon", "TreePine", "Flame", "Droplets", "Smile", "Fingerprint"].includes(formThemeIcon);
+                      const isImage = !isPredefined && (formThemeIcon.startsWith("http://") || formThemeIcon.startsWith("https://") || formThemeIcon.startsWith("data:image/") || formThemeIcon === "https://");
+                      const isText = !isPredefined && !isImage;
+
+                      if (isImage) {
+                         return (
+                           <div className="animate-in fade-in slide-in-from-top-1 duration-200 mt-2 space-y-1">
+                             <input
+                               type="text"
+                               value={formThemeIcon}
+                               onChange={(e) => setFormThemeIcon(e.target.value)}
+                               className="w-full bg-indigo-50/50 dark:bg-slate-950/85 border border-indigo-200 dark:border-indigo-900 text-xs rounded-xl p-2.5 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none text-center"
+                               placeholder="Enter Image URL..."
+                             />
+                           </div>
+                         );
+                      } else if (isText) {
+                         return (
+                           <div className="animate-in fade-in slide-in-from-top-1 duration-200 mt-2 space-y-1">
+                             <input
+                               type="text"
+                               value={formThemeIcon}
+                               onChange={(e) => setFormThemeIcon(e.target.value)}
+                               className="w-full bg-indigo-50/50 dark:bg-slate-950/85 border border-indigo-200 dark:border-indigo-900 text-xs rounded-xl p-2.5 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none text-center"
+                               placeholder="Type Emoji standard (🦖) or custom text"
+                               maxLength={15}
+                             />
+                           </div>
+                         );
+                      }
+                      return null;
+                    })()}
                   </div>
 
                   <div>
@@ -1356,6 +1382,23 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                   />
                 </div>
 
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">Night Theme Override</label>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-550 block">Select a custom theme for night</span>
+                  </div>
+                  <select
+                    value={localSettings.moonThemeOverrideId || "default"}
+                    onChange={(e) => handleUpdateLocalSettings({ moonThemeOverrideId: e.target.value })}
+                    className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold rounded-lg p-2 dark:text-white cursor-pointer"
+                  >
+                    <option value="default">Default Lunar Theme</option>
+                    {localSettings.customThemes?.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Simulation block */}
                 <div className="flex flex-col space-y-3 p-3.5 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-850">
                   <div className="flex items-center justify-between">
@@ -1638,6 +1681,73 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                     </div>
                   )}
                 </div>
+
+                {/* Custom Lunar Phase Images & Descriptions */}
+                <div className="flex flex-col space-y-3 p-3.5 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-850">
+                  <div className="flex items-center space-x-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                     <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+                     <span className="text-xs font-bold text-slate-600 dark:text-slate-350">Customize Lunar Phases</span>
+                  </div>
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                     {[
+                        "🌑 New Moon",
+                        "🌒 Waxing Crescent",
+                        "🌓 First Quarter",
+                        "🌔 Waxing Gibbous",
+                        "🌕 Full Moon",
+                        "🌖 Waning Gibbous",
+                        "🌗 Last Quarter",
+                        "🌘 Waning Crescent"
+                     ].map(phase => {
+                        const phaseData = localSettings.moonCustomPhases?.[phase] || { image: "", description: "" };
+                        return (
+                          <div key={phase} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg space-y-2">
+                             <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{phase}</div>
+                             <input 
+                               type="text"
+                               placeholder="Image URL..."
+                               value={phaseData.image || ""}
+                               onChange={e => handleUpdateLocalSettings({
+                                 moonCustomPhases: {
+                                    ...(localSettings.moonCustomPhases || {}),
+                                    [phase]: { ...phaseData, image: e.target.value }
+                                 }
+                               })}
+                               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] rounded-md p-2 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/50"
+                             />
+                             <input 
+                               type="text"
+                               placeholder="Custom Description..."
+                               value={phaseData.description || ""}
+                               onChange={e => handleUpdateLocalSettings({
+                                 moonCustomPhases: {
+                                    ...(localSettings.moonCustomPhases || {}),
+                                    [phase]: { ...phaseData, description: e.target.value }
+                                 }
+                               })}
+                               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] rounded-md p-2 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/50"
+                             />
+                             <select
+                               value={phaseData.customThemeId || "default"}
+                               onChange={e => handleUpdateLocalSettings({
+                                 moonCustomPhases: {
+                                    ...(localSettings.moonCustomPhases || {}),
+                                    [phase]: { ...phaseData, customThemeId: e.target.value }
+                                 }
+                               })}
+                               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-bold rounded-md p-2 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/50 cursor-pointer"
+                             >
+                                <option value="default">🌐 Follow Global Night Setting</option>
+                                <option value="moon">🌙 Original Moon Theme</option>
+                                {localSettings.customThemes?.map(t => (
+                                  <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                             </select>
+                          </div>
+                        );
+                     })}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1776,7 +1886,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
         </div>
 
         {/* Footer - Symmetrically clean */}
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-between items-center">
+        <div className="px-6 py-4 shrink-0 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-between items-center">
           {!confirmClear ? (
              <button
               type="button"

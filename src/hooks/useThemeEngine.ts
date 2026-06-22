@@ -53,7 +53,9 @@ function getSeasonalTheme(date: Date): EventTheme {
 export function useThemeEngine() {
   const { settings } = useStore();
   const [currentTheme, setCurrentTheme] = useState<EventTheme>("none");
+  const [activeCustomThemeId, setActiveCustomThemeId] = useState<string | null>(null);
   const [moonPhase, setMoonPhase] = useState<string>("🌑 New Moon");
+  const [isMoonActive, setIsMoonActive] = useState<boolean>(false);
 
   useEffect(() => {
     const checkTheme = () => {
@@ -65,7 +67,8 @@ export function useThemeEngine() {
         }
       }
 
-      setMoonPhase(getMoonPhase(targetDate));
+      const calculatedMoonPhase = getMoonPhase(targetDate);
+      setMoonPhase(calculatedMoonPhase);
 
       const hour = targetDate.getHours();
 
@@ -91,24 +94,50 @@ export function useThemeEngine() {
 
       // If Night/Moon theme is enabled and it is night, apply Moon theme (this takes priority)
       if (settings.moonThemeEnabled && isMoonTime) {
-        setCurrentTheme("moon");
+        setIsMoonActive(true);
+        // 1. Check if there is a specific custom theme for the CURRENT moon phase
+        const phaseSpecificOverride = settings.moonCustomPhases?.[calculatedMoonPhase]?.customThemeId;
+        if (phaseSpecificOverride && phaseSpecificOverride !== "default" && phaseSpecificOverride !== "moon") {
+          setCurrentTheme("custom");
+          setActiveCustomThemeId(phaseSpecificOverride);
+          return;
+        }
+        
+        // 2. Otherwise fall back to the global Night/Moon override or default
+        if (settings.moonThemeOverrideId && settings.moonThemeOverrideId !== "default") {
+          setCurrentTheme("custom");
+          setActiveCustomThemeId(settings.moonThemeOverrideId);
+        } else {
+          setCurrentTheme("moon");
+          setActiveCustomThemeId(null);
+        }
         return;
       }
 
       // Then fall back to Manual Theme Override (if set to something other than 'auto' or 'none')
       if (settings.themeOverride && settings.themeOverride !== "auto" && settings.themeOverride !== "none") {
+        setIsMoonActive(false);
         setCurrentTheme(settings.themeOverride as EventTheme);
+        if (settings.themeOverride === "custom") {
+          setActiveCustomThemeId(settings.selectedCustomThemeId || null);
+        } else {
+          setActiveCustomThemeId(null);
+        }
         return;
       }
 
       // If set to Auto Seasonal (Date-based), automatically check the calendar date
       if (settings.themeOverride === "auto") {
+        setIsMoonActive(false);
         const seasonal = getSeasonalTheme(targetDate);
         setCurrentTheme(seasonal);
+        setActiveCustomThemeId(null);
         return;
       }
 
       setCurrentTheme("none");
+      setIsMoonActive(false);
+      setActiveCustomThemeId(null);
     };
 
     checkTheme();
@@ -119,8 +148,11 @@ export function useThemeEngine() {
     settings.themeOverride,
     settings.moonThemeStartTime,
     settings.moonCustomDateEnabled,
-    settings.moonCustomDate
+    settings.moonCustomDate,
+    settings.selectedCustomThemeId,
+    settings.moonThemeOverrideId,
+    settings.moonCustomPhases
   ]);
 
-  return { currentTheme, moonPhase };
+  return { currentTheme, moonPhase, activeCustomThemeId, isMoonActive };
 }

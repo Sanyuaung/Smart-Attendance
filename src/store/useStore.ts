@@ -26,6 +26,7 @@ const defaultSettings: Settings = {
   },
   moonThemeEnabled: true,
   moonThemeStartTime: "19:00",
+  moonThemeOverrideId: "default",
   soundEnabled: true,
   showWeather: true,
   showLocation: true,
@@ -85,6 +86,7 @@ const defaultSettings: Settings = {
     }
   ],
   selectedCustomThemeId: "neon-cyber",
+  moonCustomPhases: {},
 };
 
 const defaultImages = [

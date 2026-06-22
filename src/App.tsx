@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, Globe, RefreshCw, Calendar } from "lucide-react";
+import { Settings as SettingsIcon, Globe, RefreshCw, Calendar, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "./store/useStore";
 import { useThemeEngine } from "./hooks/useThemeEngine";
 import HeroSection from "./components/HeroSection";
 import SettingsModal from "./components/SettingsModal";
+import GuideModal from "./components/GuideModal";
 import DailyStatus from "./components/DailyStatus";
 
 export default function App() {
   const { settings, user, images, imageTransitionSpeed } = useStore();
   const { currentTheme } = useThemeEngine();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Handle HTMl dark mode class based on settings and time
@@ -65,7 +67,15 @@ export default function App() {
       <div className="relative z-10 flex flex-col flex-1">
         {/* Top Navigation Bar */}
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm flex justify-between items-center px-4 md:px-8 py-3">
-           <div className="hidden sm:block"></div>
+           <div className="flex items-center">
+             <button
+                onClick={() => setIsGuideOpen(true)}
+                className="p-2 mr-2 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 transition-all hover:scale-110 active:scale-95 group"
+                title="Application Guide"
+              >
+                <HelpCircle className="w-5 h-5 group-hover:animate-pulse" />
+             </button>
+           </div>
            <div className="flex items-center justify-end w-full sm:w-auto">
              <div className="flex items-center space-x-3 border-slate-200 dark:border-slate-700">
              <div className="w-10 h-10 bg-[#0a2357] text-white rounded-full flex items-center justify-center font-semibold text-lg">
@@ -122,6 +132,7 @@ export default function App() {
       </div>
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
     </div>
   );
 }
