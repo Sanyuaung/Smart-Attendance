@@ -77,23 +77,29 @@ export default function App() {
              </button>
            </div>
            <div className="flex items-center justify-end w-full sm:w-auto">
-             <div className="flex items-center space-x-3 border-slate-200 dark:border-slate-700">
-             <div className="w-10 h-10 bg-[#0a2357] text-white rounded-full flex items-center justify-center font-semibold text-lg">
-               {user.name.charAt(0)}
-             </div>
-             <div className="flex flex-col text-sm hidden sm:flex">
-               <span className="font-semibold text-slate-800 dark:text-slate-200">{user.name}</span>
-               <span className="text-slate-500 text-xs text-right opacity-80">{user.id.replace('EMP-', '')}</span>
-             </div>
-             <button 
-                onClick={() => setIsSettingsOpen(true)} 
-                className="ml-2 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:text-slate-400 transition-colors"
-                title="Settings"
-             >
-               <SettingsIcon className="w-5 h-5" />
-             </button>
-           </div>
-         </div>
+             <div className="flex items-center space-x-4">
+              <div className="flex flex-col text-right hidden sm:flex">
+                <span className="font-bold text-sm text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-1">{user.name}</span>
+                <div className="flex items-center justify-end space-x-1.5 opacity-80">
+                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-md leading-none">{user.department}</span>
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md leading-none">#{user.id.replace('EMP-', '')}</span>
+                </div>
+              </div>
+              <div className="relative group flex items-center">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0a2357] to-[#1e3a8a] text-white flex items-center justify-center font-bold text-lg ring-2 ring-indigo-500/10 shadow-md transition-transform group-hover:scale-105 cursor-default">
+                  {user.name.charAt(0)}
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full shadow-sm" />
+              </div>
+              <button 
+                 onClick={() => setIsSettingsOpen(true)} 
+                 className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm active:scale-95"
+                 title="System Settings"
+              >
+                <SettingsIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
       </div>
 
       {/* Main Content */}
@@ -136,4 +142,3 @@ export default function App() {
     </div>
   );
 }
-

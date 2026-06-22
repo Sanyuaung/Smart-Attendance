@@ -3,8 +3,8 @@ import { persist } from "zustand/middleware";
 import { AppState, AttendanceRecord, AttendanceStatus, Settings, UserProfile } from "../types";
 
 const defaultUser: UserProfile = {
-  name: "San Yu Aung",
-  id: "EMP-029018",
+  name: "Nanda Min Naing",
+  id: "EMP-019997",
   department: "F21 Software & Data Analytics",
   shiftStart: "09:00 AM",
   shiftEnd: "05:00 PM",
