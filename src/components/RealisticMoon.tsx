@@ -15,42 +15,31 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
   // The moon image I generated
   const moonImageUrl = customImageUrl || defaultMoonImage;
 
-  // Generate the SVG paths for the shadow overlay
-  const getShadowPaths = () => {
-    const paths = [];
-    
-    // We want the shadow to be semi-transparent black
-    const shadowColor = "rgba(0, 0, 0, 0.85)";
-
+  // Generate the SVG single path for the shadow overlay
+  const getShadowPathStr = () => {
+    // We want the shadow to cover the portion of the Moon that is NOT lit.
+    // A single closed path using two arc commands prevents any subpixel alignment lines or gaps in the middle of the Moon.
     if (phase <= 0.25) {
-      // Waxing Crescent
-      // Dark covers all left, and shrinks on the right
+      // Waxing Crescent: Left half is dark, right half is partially dark (shrinking)
       const p = phase / 0.25;
       const rx = 50 * (1 - p);
-      paths.push(<path key="left" d="M 50,0 A 50,50 0 0,0 50,100 Z" fill={shadowColor} />);
-      paths.push(<path key="right" d={`M 50,0 A ${rx},50 0 0,1 50,100 Z`} fill={shadowColor} />);
+      return `M 50,0 A 50,50 0 0,0 50,100 A ${rx},50 0 0,0 50,0 Z`;
     } else if (phase <= 0.5) {
-      // Waxing Gibbous
-      // Dark is only a crescent on the left
+      // Waxing Gibbous: Left half is partially dark (shrinking), right half is fully lit
       const p = (phase - 0.25) / 0.25;
       const rx = 50 * p;
-      paths.push(<path key="crescent-left" d={`M 50,0 A 50,50 0 0,0 50,100 A ${rx},50 0 0,1 50,0 Z`} fill={shadowColor} />);
+      return `M 50,0 A 50,50 0 0,0 50,100 A ${rx},50 0 0,1 50,0 Z`;
     } else if (phase <= 0.75) {
-      // Waning Gibbous
-      // Dark is only a crescent on the right
+      // Waning Gibbous: Left half is fully lit, right half is partially dark (growing)
       const p = (phase - 0.5) / 0.25;
       const rx = 50 * (1 - p);
-      paths.push(<path key="crescent-right" d={`M 50,0 A 50,50 0 0,1 50,100 A ${rx},50 0 0,0 50,0 Z`} fill={shadowColor} />);
+      return `M 50,0 A 50,50 0 0,1 50,100 A ${rx},50 0 0,0 50,0 Z`;
     } else {
-      // Waning Crescent
-      // Dark covers all right, and grows on the left
+      // Waning Crescent: Right half is dark, left half is partially dark (growing)
       const p = (phase - 0.75) / 0.25;
       const rx = 50 * p;
-      paths.push(<path key="right" d="M 50,0 A 50,50 0 0,1 50,100 Z" fill={shadowColor} />);
-      paths.push(<path key="left" d={`M 50,0 A ${rx},50 0 0,0 50,100 Z`} fill={shadowColor} />);
+      return `M 50,0 A 50,50 0 0,1 50,100 A ${rx},50 0 0,1 50,0 Z`;
     }
-
-    return paths;
   };
 
   return (
@@ -62,7 +51,7 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
       <img 
         src={moonImageUrl}
         alt="Moon Texture"
-        className="absolute inset-0 w-full h-full object-cover z-0"
+        className="absolute inset-0 w-full h-full object-cover z-0 scale-[1.33]"
         referrerPolicy="no-referrer"
       />
 
@@ -75,12 +64,12 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
         {/* Soft edge filter to make the terminator look more realistic/atmospheric */}
         <defs>
           <filter id="moon-blur" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" />
+            <feGaussianBlur stdDeviation="2.5" />
           </filter>
         </defs>
         
         <g filter="url(#moon-blur)">
-          {getShadowPaths()}
+          <path d={getShadowPathStr()} fill="rgba(0, 0, 0, 0.85)" />
         </g>
       </svg>
       

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../store/useStore";
 import { useThemeEngine } from "../hooks/useThemeEngine";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
-import { Hand, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Fingerprint, Sparkles, Smile, Star, Zap, Coffee, Gift, Trophy, Music, Rocket } from "lucide-react";
+import { Hand, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Fingerprint, Sparkles, Smile, Star, Zap, Coffee, Gift, Trophy, Music, Rocket, MapPin } from "lucide-react";
 
 import RealisticMoon from "./RealisticMoon";
 
@@ -232,7 +232,9 @@ export default function HeroSection() {
   let shapeClass = "rounded-full";
   let rippleShapeClass = "rounded-full";
   let rippleColor = "bg-blue-500/10 dark:bg-blue-500/20";
-  let baseColorClass = "border-[#dae6f2] dark:border-slate-700 bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8]";
+  let baseColorClass = isCheckedIn
+    ? "border-emerald-300 dark:border-emerald-700/80 bg-gradient-to-b from-emerald-500 to-teal-600 shadow-[0_0_30px_rgba(16,185,129,0.35)]"
+    : "border-blue-300 dark:border-blue-800/80 bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] shadow-[0_0_30px_rgba(59,130,246,0.35)]";
 
   if (currentTheme === "valentine") {
     shapeClass = "rounded-full";
@@ -419,8 +421,25 @@ export default function HeroSection() {
           </AnimatePresence>
         </div>
         
-        <div className="h-6 flex items-center justify-center mt-3">
-          {currentTheme === "moon" ? (
+        <div className="min-h-[1.5rem] flex flex-wrap items-center justify-center gap-2 mt-3 z-20 relative">
+          {settings.showWeather && (
+            <motion.div 
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center text-slate-500 dark:text-slate-300 text-xs font-semibold space-x-2 bg-slate-100/60 dark:bg-slate-800/40 px-3 py-1 rounded-full border border-slate-250/50 dark:border-slate-750/30 backdrop-blur-sm shadow-sm transition-all"
+            >
+              <span className="flex items-center text-blue-500 dark:text-blue-400">
+                {renderWeatherIcon()}
+              </span>
+              <span className="w-px h-3 bg-slate-300 dark:bg-slate-700" />
+              <span className="flex items-center space-x-1 font-medium text-slate-600 dark:text-slate-300">
+                <MapPin className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+                <span>{weatherStr}</span>
+              </span>
+            </motion.div>
+          )}
+
+          {currentTheme === "moon" && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -429,12 +448,7 @@ export default function HeroSection() {
                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
                <span>Lunar Phase: {moonPhase.replace(/[^a-zA-Z\s]/g, '').trim()}</span>
             </motion.div>
-          ) : settings.showWeather ? (
-            <div className="flex items-center text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest space-x-2">
-              {renderWeatherIcon()}
-              <span>{weatherStr}</span>
-            </div>
-          ) : null}
+          )}
         </div>
       </div>
 
