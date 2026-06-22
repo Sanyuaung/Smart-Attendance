@@ -3,7 +3,7 @@ import { useStore } from "../store/useStore";
 import { MapPin, RefreshCw } from "lucide-react";
 
 export default function LocationWidget() {
-  const { settings } = useStore();
+  const { settings, lastRefresh } = useStore();
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,6 +12,7 @@ export default function LocationWidget() {
     if (!settings.showLocation) return;
     setLoading(true);
     setError(null);
+    setLocation(null); // Clear previous to show loading state
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -34,7 +35,7 @@ export default function LocationWidget() {
 
   useEffect(() => {
     fetchLocation();
-  }, [settings.showLocation]);
+  }, [settings.showLocation, lastRefresh]);
 
   if (!settings.showLocation) return null;
 
@@ -59,9 +60,8 @@ export default function LocationWidget() {
         <>
           <div className="w-full h-24 bg-slate-800 rounded-xl relative overflow-hidden border border-white/5">
             <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500 via-transparent to-transparent z-10 pointer-events-none"></div>
-            <img 
-              src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=15&size=400x200&maptype=roadmap&markers=color:0x6366f1%7C${location.lat},${location.lng}&style=feature:all|element:labels.text.fill|color:0x9ca3af&style=feature:all|element:labels.text.stroke|color:0x111827&style=feature:water|element:geometry|color:0x111827&style=feature:landscape|element:geometry|color:0x1f2937&style=feature:road|element:geometry|color:0x374151&style=feature:poi|element:geometry|color:0x1f2937&key=${mapApiKey}`}
-              alt="Map"
+            <iframe 
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.lng - 0.01},${location.lat - 0.01},${location.lng + 0.01},${location.lat + 0.01}&layer=mapnik&marker=${location.lat},${location.lng}`}
               className="w-full h-full object-cover opacity-80"
             />
             <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 rounded text-[9px] font-mono z-20 text-indigo-300">

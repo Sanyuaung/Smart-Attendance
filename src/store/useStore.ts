@@ -97,11 +97,12 @@ export const useStore = create<AppState>()(
   persist(
     (set) => ({
       user: defaultUser,
-      status: "Checked Out",
+      status: "Checked In",
       records: [],
       images: defaultImages,
       settings: defaultSettings,
       imageTransitionSpeed: 10,
+      lastRefresh: Date.now(),
 
       checkIn: (record) => set((state) => ({
         status: "Checked In",
@@ -113,7 +114,9 @@ export const useStore = create<AppState>()(
         records: [record, ...state.records]
       })),
 
-      clearRecords: () => set({ records: [], status: "Checked Out" }),
+      clearRecords: () => set({ records: [], status: "Checked In" }),
+      
+      triggerRefresh: () => set({ lastRefresh: Date.now() }),
 
       updateSettings: (newSettings) => set((state) => ({
         settings: { ...state.settings, ...newSettings }

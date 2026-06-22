@@ -92,7 +92,11 @@ export default function App() {
         {/* Title Bar */}
         <div className="flex justify-between items-center border-b border-slate-300 dark:border-slate-700 pb-3 mb-6 mt-4">
           <h1 className="text-xl font-bold text-[#0c3176] dark:text-blue-400">Attendance</h1>
-          <button className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors">
+          <button 
+            onClick={() => useStore.getState().triggerRefresh()}
+            className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+            title="Refresh Data"
+          >
             <RefreshCw className="w-5 h-5"/>
           </button>
         </div>

@@ -36,6 +36,9 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
   const [formThemeInteractiveEffect, setFormThemeInteractiveEffect] = useState<"bounce" | "pulse" | "spin" | "wiggle" | "none">("pulse");
   const [formThemeEmojis, setFormThemeEmojis] = useState("✨ 🍭 🎉");
 
+  const [confirmClear, setConfirmClear] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"general" | "themes" | "particles" | "night" | "backgrounds">("general");
+
   // Custom Simulated Calendar States
   const [viewMonth, setViewMonth] = useState<number>(6);
   const [viewYear, setViewYear] = useState<number>(2026);
@@ -368,7 +371,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
       />
 
       {/* Settings Dialog box */}
-      <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-150 dark:border-slate-800 flex flex-col max-h-[85vh] overflow-hidden transition-all transform scale-100 animate-in fade-in-50 zoom-in-95 duration-200 z-10 animate-fade-in">
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-4xl mx-4 rounded-3xl shadow-2xl border border-slate-150 dark:border-slate-800 flex flex-col max-h-[90vh] overflow-hidden transition-all transform scale-100 animate-in fade-in-50 zoom-in-95 duration-200 z-10 animate-fade-in">
         
         {/* Header - Sleek & Beautiful */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 backdrop-blur-sm">
@@ -393,10 +396,69 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
         </div>
 
         {/* Content Section - Structured Premium Cards */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/30 dark:bg-slate-950/10">
+        <div className="flex flex-1 overflow-hidden min-h-[500px]">
+          
+          {/* Sidebar Navigation */}
+          <div className="w-1/3 bg-slate-50/50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 p-4 space-y-1.5 overflow-y-auto hidden sm:block">
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl text-left transition-colors border ${activeTab === 'general' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 font-bold shadow-sm' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+            >
+              <Eye className={`w-4 h-4 ${activeTab === 'general' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+              <span className="text-xs uppercase tracking-wider">General settings</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('themes')}
+              className={`w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl text-left transition-colors border ${activeTab === 'themes' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 font-bold shadow-sm' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+            >
+              <Palette className={`w-4 h-4 ${activeTab === 'themes' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+              <span className="text-xs uppercase tracking-wider">Custom Themes</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('particles')}
+              className={`w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl text-left transition-colors border ${activeTab === 'particles' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 font-bold shadow-sm' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+            >
+              <Sparkles className={`w-4 h-4 ${activeTab === 'particles' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+              <span className="text-xs uppercase tracking-wider">Particles & Effects</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('night')}
+              className={`w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl text-left transition-colors border ${activeTab === 'night' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 font-bold shadow-sm' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+            >
+              <Moon className={`w-4 h-4 ${activeTab === 'night' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+              <span className="text-xs uppercase tracking-wider">Auto Night Mode</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('backgrounds')}
+              className={`w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl text-left transition-colors border ${activeTab === 'backgrounds' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800 font-bold shadow-sm' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+            >
+              <ImageIcon className={`w-4 h-4 ${activeTab === 'backgrounds' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`} />
+              <span className="text-xs uppercase tracking-wider">Backgrounds</span>
+            </button>
+          </div>
+
+          {/* Main Form Content Container */}
+          <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-50/30 dark:bg-slate-950/10">
+
+            {/* Mobile Tab Select */}
+            <div className="sm:hidden mb-4">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as any)}
+                className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold rounded-xl p-3 text-slate-800 dark:text-slate-200 focus:outline-none"
+              >
+                <option value="general">General Settings</option>
+                <option value="themes">Custom Themes</option>
+                <option value="particles">Particles & Effects</option>
+                <option value="night">Auto Night Mode</option>
+                <option value="backgrounds">Background Images</option>
+              </select>
+            </div>
           
           {/* Appearance card */}
-          <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+          {activeTab === 'general' && (
+            <>
+              <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center space-x-2 pb-2 border-b border-slate-100 dark:border-slate-800">
               <Eye className="w-4 h-4 text-sky-500" />
               <h3 className="font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider">Appearance & Styling</h3>
@@ -639,8 +701,65 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             </div>
           </div>
 
+          {/* Custom Greeting segment */}
+          <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <h3 className="font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider">Custom Title Greetings</h3>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={localSettings.customGreetingsEnabled} 
+                  onChange={(e) => handleUpdateLocalSettings({ customGreetingsEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
+              </label>
+            </div>
+            
+            {localSettings.customGreetingsEnabled ? (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Cyclical Greeting phrases (one per line)</span>
+                    <span className="text-[10px] text-slate-400">Transition: {localSettings.greetingTransitionSpeed || 3}s</span>
+                  </div>
+                  <textarea 
+                    value={(localSettings.customGreetings || []).join('\n')} 
+                    onChange={(e) => handleUpdateLocalSettings({ customGreetings: e.target.value.split('\n').filter(g => g.trim().length > 0) })}
+                    className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs rounded-xl p-3 dark:text-white min-h-[90px] font-medium outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    placeholder="Good morning!&#10;Have a great day!"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 block">Greeting Transition Speed (s)</span>
+                    <span className="text-[10px] text-slate-400 block">Timing for rotation in seconds</span>
+                  </div>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max="60"
+                    value={localSettings.greetingTransitionSpeed || 3} 
+                    onChange={(e) => handleUpdateLocalSettings({ greetingTransitionSpeed: parseInt(e.target.value) || 3 })}
+                    className="bg-slate-50 dark:bg-slate-950 border border-[#b2c0cc] dark:border-slate-850 text-xs font-bold rounded-lg p-2 dark:text-white w-16 text-center"
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 italic bg-slate-50/50 dark:bg-slate-950/20 p-2.5 rounded-xl border border-dashed border-slate-200/50 dark:border-slate-800">
+                Disabled. The dashboard banner will automatically display dynamic greetings tailored to the hour: <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">"Good Morning"</span>, <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">"Good Afternoon"</span>, or <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">"Good Evening"</span>. No cycle animation or timed intervals will be active.
+              </p>
+            )}
+          </div>
+            </>
+          )}
+
           {/* Custom Theme Creator Card */}
-          {true && (
+          {activeTab === 'themes' && (
             <div className="space-y-4">
               {/* 1. Theme Selection & Applied Custom Theme Specification Panel */}
               <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -655,7 +774,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                 </div>
 
                 {/* List of Custom Themes */}
-                <div className="grid grid-cols-1 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 gap-2.5">
                   {(localSettings.customThemes || []).map((theme) => {
                     const isSelected = localSettings.selectedCustomThemeId === theme.id;
                     const isEditing = editingThemeId === theme.id;
@@ -994,7 +1113,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
           )}
 
           {/* Transitions & Particles Customization Card */}
-          {localSettings.animationsEnabled && (
+          {activeTab === 'particles' && localSettings.animationsEnabled && (
             <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4 animate-in slide-in-from-bottom-3 duration-300">
               <div className="flex items-center space-x-2 pb-2 border-b border-slate-100 dark:border-slate-800">
                 <Sliders className="w-4 h-4 text-emerald-500" />
@@ -1204,6 +1323,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
           )}
 
           {/* Night Theme Conditions */}
+          {activeTab === 'night' && (
           <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center space-x-2">
@@ -1521,8 +1641,10 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
               </div>
             )}
           </div>
+          )}
 
           {/* Background settings card */}
+          {activeTab === 'backgrounds' && (
           <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center space-x-2">
@@ -1604,7 +1726,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                           }
                           setErrorMessage("");
                         }}
-                        className="relative rounded-lg overflow-hidden h-10 border border-slate-200 dark:border-slate-800 hover:scale-105 active:scale-95 transition-all"
+                        className="relative rounded-lg overflow-hidden h-16 border border-slate-200 dark:border-slate-800 hover:scale-105 active:scale-95 transition-all"
                         title="Add preset background"
                       >
                         <img src={preset} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
@@ -1621,9 +1743,9 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                   <span className="text-xs font-bold text-slate-600 dark:text-slate-450 block">
                     Active Slide Images ({localImages.length})
                   </span>
-                  <div className="grid grid-cols-3 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-3 gap-2.5">
                     {localImages.map((img, idx) => (
-                      <div key={idx} className="relative group rounded-xl overflow-hidden h-16 bg-slate-100 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
+                      <div key={idx} className="relative group rounded-xl overflow-hidden h-24 bg-slate-100 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
                         <img src={img} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
                         
                         {/* Remove Hover Layer */}
@@ -1648,66 +1770,43 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
               </div>
             )}
           </div>
+          )}
 
-          {/* Custom Greeting segment */}
-          <div className="bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <h3 className="font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider">Custom Title Greetings</h3>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={localSettings.customGreetingsEnabled} 
-                  onChange={(e) => handleUpdateLocalSettings({ customGreetingsEnabled: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
-              </label>
-            </div>
-            
-            {localSettings.customGreetingsEnabled ? (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Cyclical Greeting phrases (one per line)</span>
-                    <span className="text-[10px] text-slate-400">Transition: {localSettings.greetingTransitionSpeed || 3}s</span>
-                  </div>
-                  <textarea 
-                    value={(localSettings.customGreetings || []).join('\n')} 
-                    onChange={(e) => handleUpdateLocalSettings({ customGreetings: e.target.value.split('\n').filter(g => g.trim().length > 0) })}
-                    className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs rounded-xl p-3 dark:text-white min-h-[90px] font-medium outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    placeholder="Good morning!&#10;Have a great day!"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 block">Greeting Transition Speed (s)</span>
-                    <span className="text-[10px] text-slate-400 block">Timing for rotation in seconds</span>
-                  </div>
-                  <input 
-                    type="number" 
-                    min="1"
-                    max="60"
-                    value={localSettings.greetingTransitionSpeed || 3} 
-                    onChange={(e) => handleUpdateLocalSettings({ greetingTransitionSpeed: parseInt(e.target.value) || 3 })}
-                    className="bg-slate-50 dark:bg-slate-950 border border-[#b2c0cc] dark:border-slate-850 text-xs font-bold rounded-lg p-2 dark:text-white w-16 text-center"
-                  />
-                </div>
-              </div>
-            ) : (
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 italic bg-slate-50/50 dark:bg-slate-950/20 p-2.5 rounded-xl border border-dashed border-slate-200/50 dark:border-slate-800">
-                Disabled. The dashboard banner will automatically display dynamic greetings tailored to the hour: <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">"Good Morning"</span>, <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">"Good Afternoon"</span>, or <span className="font-bold text-indigo-600 dark:text-indigo-400 font-mono">"Good Evening"</span>. No cycle animation or timed intervals will be active.
-              </p>
-            )}
           </div>
-
         </div>
 
         {/* Footer - Symmetrically clean */}
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-end">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex justify-between items-center">
+          {!confirmClear ? (
+             <button
+              type="button"
+              onClick={() => setConfirmClear(true)}
+              className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/40 text-xs font-bold rounded-xl transition-all outline-none border border-rose-100 dark:border-rose-900/50"
+            >
+              Clear App Data
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-rose-500 font-bold hidden sm:inline">Are you sure?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem("smart-attendance-storage");
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-rose-600 text-white hover:bg-rose-700 text-xs font-bold rounded-xl transition-all outline-none border border-rose-700"
+              >
+                Yes, Clear All
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmClear(false)}
+                className="px-3 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 text-xs font-bold rounded-xl transition-all outline-none"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
           <button 
             type="button"
             onClick={handleApplySettings}

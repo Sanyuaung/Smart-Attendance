@@ -76,11 +76,13 @@ export interface AppState {
   images: string[];
   settings: Settings;
   imageTransitionSpeed: number;
+  lastRefresh: number;
   
   // Actions
   checkIn: (record: AttendanceRecord) => void;
   checkOut: (record: AttendanceRecord) => void;
   clearRecords: () => void;
+  triggerRefresh: () => void;
   updateSettings: (newSettings: Partial<Settings>) => void;
   addImage: (url: string) => void;
   removeImage: (index: number) => void;
