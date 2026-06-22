@@ -4,26 +4,38 @@ import { useStore } from "../store/useStore";
 export type EventTheme = "valentine" | "thadingyut" | "thingyan" | "christmas" | "moon" | "custom" | "none";
 
 function getMoonAge(date: Date): number {
-  // Reference New Moon: 1970-01-07 20:35 UTC (standard epoch for lunar phases)
-  const reference = new Date(Date.UTC(1970, 0, 7, 20, 35, 0));
-  const diffMs = date.getTime() - reference.getTime();
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
-  const phase = diffDays / 29.530588853;
-  return (phase - Math.floor(phase)) * 29.530588853;
+  // More accurate Julian Date-based calculation
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const jd = (date.getTime() / msPerDay) + 2440587.5;
+  const synodicMonth = 29.53058867;
+  // A known new moon was on Julian Date 2451550.1 (Jan 6, 2000 18:14 UTC)
+  const newMoonJD = 2451550.1;
+  let age = (jd - newMoonJD) % synodicMonth;
+  if (age < 0) {
+    age += synodicMonth;
+  }
+  return age;
 }
 
 function getMoonPhase(date: Date): string {
   const age = getMoonAge(date);
   
-  if (age < 1.845) return "🌑 New Moon";
-  if (age < 5.537) return "🌒 Waxing Crescent";
-  if (age < 9.228) return "🌓 First Quarter";
-  if (age < 12.920) return "🌔 Waxing Gibbous";
-  if (age < 16.611) return "🌕 Full Moon";
-  if (age < 20.302) return "🌖 Waning Gibbous";
-  if (age < 23.994) return "🌗 Last Quarter";
-  if (age < 27.685) return "🌘 Waning Crescent";
-  return "🌑 New Moon";
+  // Normalize into 8 phases (each is ~3.69 days)
+  // Shift by half a phase so that 0 is perfectly centered on New Moon
+  const phase = (age / 29.53058867) * 8;
+  const roundedPhase = Math.round(phase) % 8;
+
+  switch (roundedPhase) {
+    case 0: return "🌑 New Moon";
+    case 1: return "🌒 Waxing Crescent";
+    case 2: return "🌓 First Quarter";
+    case 3: return "🌔 Waxing Gibbous";
+    case 4: return "🌕 Full Moon";
+    case 5: return "🌖 Waning Gibbous";
+    case 6: return "🌗 Third Quarter";
+    case 7: return "🌘 Waning Crescent";
+    default: return "🌑 New Moon";
+  }
 }
 
 function getSeasonalTheme(date: Date): EventTheme {
