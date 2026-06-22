@@ -2,14 +2,32 @@ import { useStore } from "../store/useStore";
 import { cn } from "../lib/utils";
 
 export default function ProfileCard() {
-  const { user, status } = useStore();
+  const { user, status, records, settings } = useStore();
 
-  const statusColor = {
-    "Checked In": "bg-green-500",
-    "Checked Out": "bg-slate-400",
-    "Late": "bg-amber-500",
-    "Absent": "bg-red-500"
-  }[status];
+  const activeDateForStatus = settings.moonCustomDateEnabled && settings.moonCustomDate
+    ? (() => {
+        const parts = settings.moonCustomDate.split("-");
+        if (parts.length === 3) {
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const d = parseInt(parts[2], 10);
+          return new Date(y, m, d);
+        }
+        return new Date();
+      })()
+    : new Date();
+
+  const hasCheckedInToday = records.some(r => {
+    if (r.type !== "in") return false;
+    const d = new Date(r.timestamp);
+    return d.getFullYear() === activeDateForStatus.getFullYear() &&
+           d.getMonth() === activeDateForStatus.getMonth() &&
+           d.getDate() === activeDateForStatus.getDate();
+  });
+
+  const displayStatus = (status === "Checked Out" || status === "Absent") 
+    ? (hasCheckedInToday ? "Checked Out" : "Not Checked In") 
+    : status;
 
   return (
     <div className="flex flex-col mb-8">
@@ -32,10 +50,11 @@ export default function ProfileCard() {
         </div>
         <div className={cn(
           "px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-tighter",
-          status === "Checked In" || status === "Late" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+          displayStatus === "Checked In" || displayStatus === "Late" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+          displayStatus === "Not Checked In" ? "bg-amber-500/20 text-amber-300 border-amber-500/30" :
           "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
         )}>
-          {status}
+          {displayStatus}
         </div>
       </div>
     </div>

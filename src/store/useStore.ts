@@ -99,7 +99,7 @@ export const useStore = create<AppState>()(
   persist(
     (set) => ({
       user: defaultUser,
-      status: "Checked In",
+      status: "Absent",
       records: [],
       images: defaultImages,
       settings: defaultSettings,
@@ -116,7 +116,7 @@ export const useStore = create<AppState>()(
         records: [record, ...state.records]
       })),
 
-      clearRecords: () => set({ records: [], status: "Checked In" }),
+      clearRecords: () => set({ records: [], status: "Absent" }),
       
       triggerRefresh: () => set({ lastRefresh: Date.now() }),
 

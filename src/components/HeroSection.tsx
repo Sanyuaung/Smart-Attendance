@@ -8,7 +8,7 @@ import { Hand, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, Cl
 import RealisticMoon from "./RealisticMoon";
 
 export default function HeroSection() {
-  const { status, checkIn, checkOut, settings, images, imageTransitionSpeed, user } = useStore();
+  const { status, checkIn, checkOut, settings, images, imageTransitionSpeed, user, records } = useStore();
   const { currentTheme, moonPhase, moonAge, activeCustomThemeId, isMoonActive } = useThemeEngine();
   const activeCustomTheme = currentTheme === "custom" 
     ? (settings.customThemes?.find(t => t.id === (activeCustomThemeId || settings.selectedCustomThemeId)) || null)
@@ -197,6 +197,35 @@ export default function HeroSection() {
 
   const isCheckedIn = status === "Checked In" || status === "Late";
   const actionText = isCheckedIn ? "CHECK OUT" : "CHECK IN";
+
+  // Check if there is any check-in record today to refine display text
+  const activeDateForStatus = settings.moonCustomDateEnabled && settings.moonCustomDate
+    ? (() => {
+        const parts = settings.moonCustomDate.split("-");
+        if (parts.length === 3) {
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const d = parseInt(parts[2], 10);
+          return new Date(y, m, d);
+        }
+        return new Date();
+      })()
+    : new Date();
+
+  const hasCheckedInToday = records.some(r => {
+    if (r.type !== "in") return false;
+    const d = new Date(r.timestamp);
+    return d.getFullYear() === activeDateForStatus.getFullYear() &&
+           d.getMonth() === activeDateForStatus.getMonth() &&
+           d.getDate() === activeDateForStatus.getDate();
+  });
+
+  const displayStatusStr = status === "Checked In" 
+    ? "CHECKED IN" 
+    : (status === "Checked Out" || status === "Absent") 
+      ? (hasCheckedInToday ? "CHECKED OUT" : "NOT CHECKED IN") 
+      : status.toUpperCase();
+
   
   // Standard premium fingerprint biometric look for simple and clear Smart Attendance
   let buttonContent = (
@@ -523,7 +552,7 @@ export default function HeroSection() {
         </div>
 
         {/* Simple & Clean Attendance status indicators */}
-        <div className="mt-8 flex flex-col items-center space-y-1.5 text-center select-none z-30 animate-fade-in max-w-[270px] w-full mx-auto px-1">
+        <div className="mt-8 flex flex-col items-center space-y-1 text-center select-none z-30 animate-fade-in max-w-[270px] w-full mx-auto px-1">
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
             Attendance Status
           </span>
@@ -531,7 +560,12 @@ export default function HeroSection() {
           <span
             className={`text-3xl font-black tracking-widest uppercase transition-all duration-300 ${themeIconColor}`}
           >
-            {isCheckedIn ? "CHECK IN" : "CHECK OUT"}
+            {displayStatusStr}
+          </span>
+
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5 animate-pulse mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 shadow-[0_0_6px_rgba(99,102,241,0.5)]" />
+            <span>{isCheckedIn ? "TAP TO CHECK OUT" : "TAP TO CHECK IN"}</span>
           </span>
         </div>
 
