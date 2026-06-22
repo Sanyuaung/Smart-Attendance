@@ -55,6 +55,7 @@ export function useThemeEngine() {
   const [currentTheme, setCurrentTheme] = useState<EventTheme>("none");
   const [activeCustomThemeId, setActiveCustomThemeId] = useState<string | null>(null);
   const [moonPhase, setMoonPhase] = useState<string>("🌑 New Moon");
+  const [moonAge, setMoonAge] = useState<number>(0);
   const [isMoonActive, setIsMoonActive] = useState<boolean>(false);
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export function useThemeEngine() {
 
       const calculatedMoonPhase = getMoonPhase(targetDate);
       setMoonPhase(calculatedMoonPhase);
+      setMoonAge(getMoonAge(targetDate));
 
       const hour = targetDate.getHours();
 
@@ -154,5 +156,5 @@ export function useThemeEngine() {
     settings.moonCustomPhases
   ]);
 
-  return { currentTheme, moonPhase, activeCustomThemeId, isMoonActive };
+  return { currentTheme, moonPhase, moonAge, activeCustomThemeId, isMoonActive };
 }

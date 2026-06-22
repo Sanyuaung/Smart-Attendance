@@ -5,9 +5,11 @@ import { useThemeEngine } from "../hooks/useThemeEngine";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
 import { Hand, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Fingerprint, Sparkles, Smile, Star, Zap, Coffee, Gift, Trophy, Music, Rocket } from "lucide-react";
 
+import RealisticMoon from "./RealisticMoon";
+
 export default function HeroSection() {
   const { status, checkIn, checkOut, settings, images, imageTransitionSpeed, user } = useStore();
-  const { currentTheme, moonPhase, activeCustomThemeId, isMoonActive } = useThemeEngine();
+  const { currentTheme, moonPhase, moonAge, activeCustomThemeId, isMoonActive } = useThemeEngine();
   const activeCustomTheme = currentTheme === "custom" 
     ? (settings.customThemes?.find(t => t.id === (activeCustomThemeId || settings.selectedCustomThemeId)) || null)
     : null;
@@ -41,16 +43,22 @@ export default function HeroSection() {
   // Greeting text calculation
   const getDynamicGreetingText = () => {
     if (settings.customGreetingsEnabled) {
-      return greetings[currentGreetingIndex % greetings.length] || "Welcome Page";
+      const g = greetings[currentGreetingIndex % greetings.length] || "Welcome Page";
+      // Try to extract emoji at the end
+      const match = g.match(/^(.*?)\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}]+)?$/u);
+      return {
+        text: match?.[1] || g,
+        emoji: match?.[2] || ""
+      };
     } else {
       const hour = new Date().getHours();
-      if (hour < 12) return "Good Morning 👋";
-      if (hour < 18) return "Good Afternoon 🌤️";
-      return "Good Evening 🌙";
+      if (hour < 12) return { text: "Good Morning", emoji: "🌤️" };
+      if (hour < 18) return { text: "Good Afternoon", emoji: "☀️" };
+      return { text: "Good Evening", emoji: "🌙" };
     }
   };
 
-  const activeGreetingText = getDynamicGreetingText();
+  const activeGreeting = getDynamicGreetingText();
 
   const spawnParticles = () => {
     let customEmojisStr = "✨";
@@ -241,15 +249,10 @@ export default function HeroSection() {
     shapeClass = "rounded-full";
     rippleShapeClass = "rounded-full";
     rippleColor = "bg-indigo-400/40";
-    baseColorClass = "border-indigo-500/30 dark:border-indigo-800 bg-gradient-to-b from-[#090d16] via-[#121132] to-[#201d4a] shadow-[0_0_30px_rgba(99,102,241,0.25)]";
+    baseColorClass = "border-0 bg-transparent shadow-none";
     const customImage = settings.moonCustomPhases?.[moonPhase]?.image;
-    const moonEmoji = moonPhase.split(" ")[0] || "🌙";
-    buttonContent = customImage ? (
-      <img src={customImage} className="w-[204px] h-[204px] rounded-full object-cover transition-transform duration-500 hover:scale-105" alt="Moon Phase" referrerPolicy="no-referrer" />
-    ) : (
-      <span className="text-[145px] leading-none select-none filter drop-shadow-[0_0_25px_rgba(255,255,255,0.45)] transition-transform duration-500 hover:rotate-12 animate-pulse block">
-        {moonEmoji}
-      </span>
+    buttonContent = (
+      <RealisticMoon age={moonAge} size={220} className="hover:scale-105 transition-transform duration-500" customImageUrl={customImage} />
     );
   } else if (currentTheme === "christmas") {
     shapeClass = "rounded-full";
@@ -305,12 +308,13 @@ export default function HeroSection() {
     const moonPhaseImage = isMoonActive ? settings.moonCustomPhases?.[moonPhase]?.image : null;
     
     if (moonPhaseImage) {
+       baseColorClass = "border-0 bg-transparent shadow-none";
        buttonContent = (
-         <img 
-           src={moonPhaseImage} 
-           className={`w-[204px] h-[204px] rounded-full object-cover transition-transform duration-500 hover:scale-105 ${interactiveAnim}`} 
-           alt="Moon Phase Image" 
-           referrerPolicy="no-referrer" 
+         <RealisticMoon 
+           age={moonAge} 
+           size={220} 
+           className={`hover:scale-105 transition-transform duration-500 ${interactiveAnim}`} 
+           customImageUrl={moonPhaseImage} 
          />
        );
     } else if (CustomIcon) {
@@ -379,7 +383,8 @@ export default function HeroSection() {
     themeDescription = "Smart Attendance Tracker";
   }
 
-  let buttonClasses = `w-[220px] h-[220px] ${shapeClass} border-[8px] ${baseColorClass} flex flex-col items-center justify-center relative z-20 text-white shadow-xl overflow-hidden transition-all duration-500`;
+  let hasZeroBorder = baseColorClass.includes("border-0");
+  let buttonClasses = `w-[220px] h-[220px] ${shapeClass} ${hasZeroBorder ? '' : 'border-[8px]'} ${baseColorClass} flex flex-col items-center justify-center relative z-20 text-white shadow-xl overflow-hidden transition-all duration-500`;
 
   const renderWeatherIcon = () => {
     if (condition.includes("Cloudy") || condition.includes("Fog")) {
@@ -401,23 +406,36 @@ export default function HeroSection() {
         <div className="h-10 flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.h2 
-              key={activeGreetingText}
-              initial={{ y: 10, opacity: 0 }}
+              key={activeGreeting.text + activeGreeting.emoji}
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -10, opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white"
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 15 }}
+              className="text-3xl md:text-4xl font-black text-[#0c3176] dark:text-white tracking-tighter flex items-center justify-center space-x-2"
             >
-              {activeGreetingText}, {user.name}
+              <span>{activeGreeting.text}, {user.name.split(' ')[0]}</span>
+              {activeGreeting.emoji && <span className="inline-block transform origin-bottom hover:rotate-12 transition-transform">{activeGreeting.emoji}</span>}
             </motion.h2>
           </AnimatePresence>
         </div>
-        {settings.showWeather && (
-          <div className="flex items-center text-slate-500 dark:text-slate-400 text-sm font-medium">
-            {renderWeatherIcon()}
-            <span>{weatherStr}</span>
-          </div>
-        )}
+        
+        <div className="h-6 flex items-center justify-center mt-3">
+          {currentTheme === "moon" ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center space-x-2 py-1 px-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase tracking-[0.2em]"
+            >
+               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+               <span>Lunar Phase: {moonPhase.replace(/[^a-zA-Z\s]/g, '').trim()}</span>
+            </motion.div>
+          ) : settings.showWeather ? (
+            <div className="flex items-center text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest space-x-2">
+              {renderWeatherIcon()}
+              <span>{weatherStr}</span>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="relative w-full py-4 flex flex-col items-center justify-center overflow-visible z-10">

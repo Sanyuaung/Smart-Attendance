@@ -77,26 +77,34 @@ export default function App() {
              </button>
            </div>
            <div className="flex items-center justify-end w-full sm:w-auto">
-             <div className="flex items-center space-x-4">
+             <div className="flex items-center space-x-5">
               <div className="flex flex-col text-right hidden sm:flex">
-                <span className="font-bold text-sm text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-1">{user.name}</span>
-                <div className="flex items-center justify-end space-x-1.5 opacity-80">
-                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-md leading-none">{user.department}</span>
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md leading-none">#{user.id.replace('EMP-', '')}</span>
+                <span className="font-extrabold text-[15px] text-slate-900 dark:text-white tracking-tight leading-none mb-1.5 uppercase">{user.name}</span>
+                <div className="flex items-center justify-end space-x-2">
+                  <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.1em] bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/50 px-2 py-0.5 rounded-md leading-none">{user.department}</span>
+                  <div className="flex items-center bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mr-1 opacity-60">ID</span>
+                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 leading-none">{user.id.replace('EMP-', '')}</span>
+                  </div>
                 </div>
               </div>
-              <div className="relative group flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0a2357] to-[#1e3a8a] text-white flex items-center justify-center font-bold text-lg ring-2 ring-indigo-500/10 shadow-md transition-transform group-hover:scale-105 cursor-default">
-                  {user.name.charAt(0)}
+              
+              <div className="relative group">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#0a2357] via-[#1e3a8a] to-indigo-600 text-white flex items-center justify-center font-black text-xl ring-4 ring-indigo-500/10 shadow-xl transition-all group-hover:scale-105 group-hover:rotate-3 cursor-default overflow-hidden">
+                  <span className="relative z-10">{user.name.charAt(0)}</span>
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full shadow-sm" />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-[3px] border-white dark:border-slate-800 rounded-full shadow-lg z-20" />
               </div>
+
+              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
+
               <button 
                  onClick={() => setIsSettingsOpen(true)} 
-                 className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm active:scale-95"
+                 className="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm active:scale-90 group"
                  title="System Settings"
               >
-                <SettingsIcon className="w-5 h-5" />
+                <SettingsIcon className="w-5 h-5 group-hover:rotate-45 transition-transform" />
               </button>
             </div>
           </div>
