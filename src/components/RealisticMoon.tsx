@@ -1,4 +1,5 @@
 import React from "react";
+import defaultMoonImage from "../assets/images/realistic_full_moon_hq_1782122147855.jpg";
 
 interface RealisticMoonProps {
   age: number; // 0 to 29.53
@@ -12,7 +13,7 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
   const phase = (age / 29.530588853) % 1;
   
   // The moon image I generated
-  const moonImageUrl = customImageUrl || "/src/assets/images/realistic_full_moon_hq_1782122147855.jpg";
+  const moonImageUrl = customImageUrl || defaultMoonImage;
 
   // Generate the SVG paths for the shadow overlay
   const getShadowPaths = () => {
