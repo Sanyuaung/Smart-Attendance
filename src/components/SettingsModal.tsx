@@ -1703,7 +1703,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                         "🌔 Waxing Gibbous",
                         "🌕 Full Moon",
                         "🌖 Waning Gibbous",
-                        "🌗 Last Quarter",
+                        "🌗 Third Quarter",
                         "🌘 Waning Crescent"
                      ].map(phase => {
                         const phaseData = localSettings.moonCustomPhases?.[phase] || { image: "", description: "" };
