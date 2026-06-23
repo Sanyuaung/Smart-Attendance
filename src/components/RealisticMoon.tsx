@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import defaultMoonImage from "../assets/images/realistic_full_moon_hq_1782122147855.jpg";
 
 interface RealisticMoonProps {
@@ -6,9 +7,10 @@ interface RealisticMoonProps {
   size?: number;
   className?: string;
   customImageUrl?: string;
+  pulseDuration?: number;
 }
 
-export default function RealisticMoon({ age, size = 200, className = "", customImageUrl }: RealisticMoonProps) {
+export default function RealisticMoon({ age, size = 200, className = "", customImageUrl, pulseDuration = 6 }: RealisticMoonProps) {
   // Normalize age to a value between 0 and 1
   const phase = (age / 29.530588853) % 1;
   
@@ -48,10 +50,13 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
       style={{ width: size, height: size }}
     >
       {/* The base moon texture (Full Moon) */}
-      <img 
+      <motion.img 
         src={moonImageUrl}
         alt="Moon Texture"
-        className="absolute inset-0 w-full h-full object-cover z-0 scale-[1.33]"
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        style={{ scale: 1.33 }}
+        animate={{ scale: [1.33, 1.45, 1.33] }}
+        transition={{ duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
         referrerPolicy="no-referrer"
       />
 

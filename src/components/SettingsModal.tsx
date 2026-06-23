@@ -534,136 +534,6 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                       </optgroup>
                     )}
                   </select>
-
-                  {/* Dynamic Action-Based CRUD Controls directly next to selection */}
-                  <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/70 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
-                    <span className="text-[10px] font-bold text-slate-550 dark:text-slate-400">Theme CRUD Tools:</span>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleUpdateLocalSettings({ themeOverride: "custom" });
-                          resetThemeForm();
-                          // Scroll smoothly to config panel
-                          const el = document.getElementById("custom-theme-specs-panel");
-                          if (el) el.scrollIntoView({ behavior: "smooth" });
-                        }}
-                        className="text-[10px] bg-white dark:bg-slate-900 text-indigo-600 hover:bg-slate-100 dark:text-indigo-400 dark:hover:bg-slate-800 font-extrabold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors flex items-center"
-                        title="Create a new theme specification"
-                      >
-                        <Plus className="w-3 h-3 mr-1" /> New Theme
-                      </button>
-
-                      {localSettings.themeOverride && localSettings.themeOverride.startsWith("custom-") && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const theme = (localSettings.customThemes || []).find(t => t.id === localSettings.themeOverride);
-                              if (theme) {
-                                loadThemeIntoForm(theme);
-                                const el = document.getElementById("custom-theme-specs-panel");
-                                if (el) el.scrollIntoView({ behavior: "smooth" });
-                              }
-                            }}
-                            className="text-[10px] bg-white dark:bg-slate-900 text-amber-600 hover:bg-slate-100 dark:text-amber-400 dark:hover:bg-slate-800 font-extrabold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors flex items-center"
-                            title="Edit currently active custom theme specs"
-                          >
-                            <Edit className="w-3 h-3 mr-1 text-amber-500" /> Edit
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const targetId = localSettings.themeOverride;
-                              handleDeleteTheme(targetId);
-                              handleUpdateLocalSettings({ themeOverride: "none" });
-                            }}
-                            className="text-[10px] bg-white dark:bg-slate-900 text-rose-600 hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-slate-800 font-extrabold px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors flex items-center"
-                            title="Delete this custom theme profile"
-                          >
-                            <Trash2 className="w-3 h-3 mr-1 text-rose-500" /> Delete
-                          </button>
-                        </>
-                      )}
-
-                      {/* Duplicate & Customize Preset themes */}
-                      {localSettings.themeOverride && ["valentine", "thadingyut", "thingyan", "christmas", "moon"].includes(localSettings.themeOverride) && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const presetsMap: Record<string, any> = {
-                              valentine: {
-                                name: "Custom Valentine Theme",
-                                icon: "Heart",
-                                baseColor: "border-pink-300 dark:border-pink-900 bg-gradient-to-b from-pink-500 to-rose-600",
-                                rippleColor: "bg-pink-500/20",
-                                shape: "rounded-full",
-                                interactiveEffect: "pulse",
-                                emojis: "❤️ 💖 💫 🌸"
-                              },
-                              moon: {
-                                name: "Custom Lunar Theme",
-                                icon: "Moon",
-                                baseColor: "border-indigo-500/30 dark:border-indigo-800 bg-gradient-to-b from-[#090d16] via-[#121132] to-[#201d4a]",
-                                rippleColor: "bg-indigo-400/40",
-                                shape: "rounded-full",
-                                interactiveEffect: "pulse",
-                                emojis: "🌙 ⭐ ✨ 🌑"
-                              },
-                              christmas: {
-                                name: "Custom Winter Theme",
-                                icon: "TreePine",
-                                baseColor: "border-emerald-300 bg-gradient-to-b from-emerald-600 to-green-700",
-                                rippleColor: "bg-emerald-500/20",
-                                shape: "rounded-full",
-                                interactiveEffect: "pulse",
-                                emojis: "🎄 ❄️ 🎁 ⭐"
-                              },
-                              thadingyut: {
-                                name: "Custom Festival of Lights",
-                                icon: "Flame",
-                                baseColor: "border-amber-300 bg-gradient-to-b from-amber-500 to-orange-600",
-                                rippleColor: "bg-amber-500/20",
-                                shape: "rounded-full",
-                                interactiveEffect: "pulse",
-                                emojis: "🏮 🔥 ✨ 🕯️"
-                              },
-                              thingyan: {
-                                name: "Custom Water Splash Theme",
-                                icon: "Droplets",
-                                baseColor: "border-sky-300 bg-gradient-to-b from-sky-500 to-blue-600",
-                                rippleColor: "bg-sky-500/20",
-                                shape: "rounded-full",
-                                interactiveEffect: "bounce",
-                                emojis: "💦 🌊 🌴 💧"
-                              }
-                            };
-
-                            const foundPreset = presetsMap[localSettings.themeOverride];
-                            if (foundPreset) {
-                              setFormThemeName(foundPreset.name);
-                              setFormThemeIcon(foundPreset.icon);
-                              setFormThemeBaseColor(foundPreset.baseColor);
-                              setFormThemeRippleColor(foundPreset.rippleColor);
-                              setFormThemeShape(foundPreset.shape);
-                              setFormThemeInteractiveEffect(foundPreset.interactiveEffect);
-                              setFormThemeEmojis(foundPreset.emojis);
-                              setEditingThemeId(null); // Clear editing to create check fresh copy
-                              handleUpdateLocalSettings({ themeOverride: "custom" }); // Go to customiser view
-                              
-                              const el = document.getElementById("custom-theme-specs-panel");
-                              if (el) el.scrollIntoView({ behavior: "smooth" });
-                            }
-                          }}
-                          className="text-[10px] bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 hover:bg-indigo-100 dark:text-indigo-400 dark:hover:bg-indigo-950/50 font-extrabold px-2 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900 transition-colors flex items-center"
-                          title="Copy this seasonal template config so you can modify it"
-                        >
-                          <Sliders className="w-3 h-3 mr-1 text-indigo-550" /> Customize Preset
-                        </button>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -681,30 +551,94 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
               </label>
             </div>
             
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Show Weather Indicator</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={localSettings.showWeather} 
-                  onChange={(e) => handleUpdateLocalSettings({ showWeather: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
-              </label>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Show Weather Indicator</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={localSettings.showWeather} 
+                    onChange={(e) => handleUpdateLocalSettings({ showWeather: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
+                </label>
+              </div>
+              {localSettings.showWeather && (
+                <div className="flex flex-col space-y-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Weather Color Accent</span>
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="color" 
+                      value={localSettings.weatherTextColor || "#3b82f6"} 
+                      onChange={(e) => handleUpdateLocalSettings({ weatherTextColor: e.target.value })}
+                      className="w-7 h-7 rounded-md cursor-pointer border-0 p-0 bg-transparent"
+                    />
+                    <input 
+                      type="text" 
+                      value={localSettings.weatherTextColor || "#3b82f6"} 
+                      onChange={(e) => handleUpdateLocalSettings({ weatherTextColor: e.target.value })}
+                      className="w-20 text-[11px] font-mono px-1.5 py-0.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-slate-700 dark:text-slate-300"
+                    />
+                    <div className="flex items-center gap-1">
+                      {["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#a855f7", "#ffffff"].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => handleUpdateLocalSettings({ weatherTextColor: color })}
+                          className={`w-4.5 h-4.5 rounded-full border border-white/30 shadow-sm transition hover:scale-110 active:scale-95`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Show Location Widget</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={localSettings.showLocation} 
-                  onChange={(e) => handleUpdateLocalSettings({ showLocation: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
-              </label>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Show Location Widget</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={localSettings.showLocation} 
+                    onChange={(e) => handleUpdateLocalSettings({ showLocation: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
+                </label>
+              </div>
+              {localSettings.showLocation && (
+                <div className="flex flex-col space-y-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Location Color Accent</span>
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="color" 
+                      value={localSettings.locationTextColor || "#10b981"} 
+                      onChange={(e) => handleUpdateLocalSettings({ locationTextColor: e.target.value })}
+                      className="w-7 h-7 rounded-md cursor-pointer border-0 p-0 bg-transparent"
+                    />
+                    <input 
+                      type="text" 
+                      value={localSettings.locationTextColor || "#10b981"} 
+                      onChange={(e) => handleUpdateLocalSettings({ locationTextColor: e.target.value })}
+                      className="w-20 text-[11px] font-mono px-1.5 py-0.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-slate-700 dark:text-slate-300"
+                    />
+                    <div className="flex items-center gap-1">
+                      {["#10b981", "#3b82f6", "#eab308", "#f43f5e", "#8b5cf6", "#ffffff"].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => handleUpdateLocalSettings({ locationTextColor: color })}
+                          className={`w-4.5 h-4.5 rounded-full border border-white/30 shadow-sm transition hover:scale-110 active:scale-95`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../store/useStore";
 import { useThemeEngine } from "../hooks/useThemeEngine";
 import { useWeatherLocation } from "../hooks/useWeatherLocation";
-import { Hand, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Fingerprint, Sparkles, Smile, Star, Zap, Coffee, Gift, Trophy, Music, Rocket, MapPin } from "lucide-react";
+import { Pointer, Heart, Moon, TreePine, Flame, Droplets, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Fingerprint, Sparkles, Smile, Star, Zap, Coffee, Gift, Trophy, Music, Rocket, MapPin } from "lucide-react";
 
 import RealisticMoon from "./RealisticMoon";
 
@@ -13,7 +13,7 @@ export default function HeroSection() {
   const activeCustomTheme = currentTheme === "custom" 
     ? (settings.customThemes?.find(t => t.id === (activeCustomThemeId || settings.selectedCustomThemeId)) || null)
     : null;
-  const { weatherStr, isDay, condition } = useWeatherLocation();
+  const { weatherStr, isDay, condition, temp, city, precip } = useWeatherLocation();
   const [particles, setParticles] = useState<{ id: number, x: number, y: number, emoji: string, duration: number, targetX: number, targetY: number, rotation: number, scale: number }[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentGreetingIndex, setCurrentGreetingIndex] = useState(0);
@@ -236,17 +236,28 @@ export default function HeroSection() {
       ? (hasCheckedInToday ? "CHECKED OUT" : "NOT CHECKED IN") 
       : status.toUpperCase();
 
-  
-  // Standard premium fingerprint biometric look for simple and clear Smart Attendance
-  let buttonContent = (
-    <Fingerprint 
-      className={`w-28 h-28 transition-all duration-350 ${
-        isCheckedIn 
-          ? "text-emerald-100 dark:text-emerald-300 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)] animate-pulse" 
-          : "text-blue-100 dark:text-blue-200 drop-shadow-[0_0_20px_rgba(147,197,253,0.5)]"
-      }`} 
-      strokeWidth={1.3} 
-    />
+  const hasCenterBackground = (settings.showBackgroundImages && images.length > 0) || currentTheme === "moon" || isMoonActive;
+  const isWeatherOnInCenter = hasCenterBackground && (settings.showWeather || settings.showLocation);
+
+  // Standard premium biometric look for simple and clear Smart Attendance
+  let buttonContent = isWeatherOnInCenter ? null : (
+    <div className="flex flex-col items-center justify-center">
+      <Pointer 
+        className={`w-16 h-16 mb-2 transition-all duration-350 ${
+          isCheckedIn 
+            ? "text-emerald-100 dark:text-emerald-300 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)] animate-pulse" 
+            : "text-blue-100 dark:text-blue-200 drop-shadow-[0_0_20px_rgba(147,197,253,0.5)]"
+        }`} 
+        strokeWidth={1.5} 
+      />
+      <div className={`font-bold tracking-widest text-lg transition-all duration-350 ${
+          isCheckedIn 
+            ? "text-emerald-50 dark:text-emerald-100 drop-shadow-[0_0_20px_rgba(52,211,153,0.5)]" 
+            : "text-blue-50 dark:text-blue-100 drop-shadow-[0_0_20px_rgba(147,197,253,0.5)]"
+      }`}>
+        {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+      </div>
+    </div>
   );
 
   const ICON_MAP: Record<string, React.ComponentType<any>> = {
@@ -270,7 +281,9 @@ export default function HeroSection() {
 
   let shapeClass = "rounded-full";
   let rippleShapeClass = "rounded-full";
-  let rippleColor = "bg-blue-500/10 dark:bg-blue-500/20";
+  let rippleColor = isCheckedIn 
+    ? "bg-emerald-500/15 dark:bg-emerald-500/20"
+    : "bg-blue-500/15 dark:bg-blue-500/20";
   let baseColorClass = isCheckedIn
     ? "border-emerald-300 dark:border-emerald-700/80 bg-gradient-to-b from-emerald-500 to-teal-600 shadow-[0_0_30px_rgba(16,185,129,0.35)]"
     : "border-blue-300 dark:border-blue-800/80 bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] shadow-[0_0_30px_rgba(59,130,246,0.35)]";
@@ -280,11 +293,16 @@ export default function HeroSection() {
     rippleShapeClass = "rounded-full";
     rippleColor = "bg-pink-500/20";
     baseColorClass = "border-pink-300 dark:border-pink-900 bg-gradient-to-b from-pink-500 to-rose-600";
-    buttonContent = (
-      <Heart 
-        className="w-24 h-24 text-pink-100 fill-pink-100/30 animate-pulse transition-all duration-300 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" 
-        strokeWidth={1.5} 
-      />
+    buttonContent = isWeatherOnInCenter ? null : (
+      <div className="flex flex-col items-center justify-center">
+        <Heart 
+          className="w-16 h-16 mb-2 text-pink-100 fill-pink-100/30 animate-pulse transition-all duration-300 drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]" 
+          strokeWidth={1.5} 
+        />
+        <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+          {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+        </div>
+      </div>
     );
   } else if (currentTheme === "moon") {
     shapeClass = "rounded-full";
@@ -293,40 +311,55 @@ export default function HeroSection() {
     baseColorClass = "border-0 bg-transparent shadow-none";
     const customImage = settings.moonCustomPhases?.[moonPhase]?.image;
     buttonContent = (
-      <RealisticMoon age={moonAge} size={220} className="hover:scale-105 transition-transform duration-500" customImageUrl={customImage} />
+      <RealisticMoon age={moonAge} size={220} className="hover:scale-105 transition-transform duration-500" customImageUrl={customImage} pulseDuration={settings.ripplePulseDuration || 6} />
     );
   } else if (currentTheme === "christmas") {
     shapeClass = "rounded-full";
     rippleShapeClass = "rounded-full";
     rippleColor = "bg-emerald-500/20";
     baseColorClass = "border-emerald-300 bg-gradient-to-b from-emerald-600 to-green-700";
-    buttonContent = (
-      <TreePine 
-        className="w-24 h-24 text-emerald-100 fill-emerald-100/30 animate-pulse transition-all duration-300 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]" 
-        strokeWidth={1.5} 
-      />
+    buttonContent = isWeatherOnInCenter ? null : (
+      <div className="flex flex-col items-center justify-center">
+        <TreePine 
+          className="w-16 h-16 mb-2 text-emerald-100 fill-emerald-100/30 animate-pulse transition-all duration-300 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]" 
+          strokeWidth={1.5} 
+        />
+        <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+          {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+        </div>
+      </div>
     );
   } else if (currentTheme === "thadingyut") {
     shapeClass = "rounded-full";
     rippleShapeClass = "rounded-full";
     rippleColor = "bg-amber-500/20";
     baseColorClass = "border-amber-300 bg-gradient-to-b from-amber-500 to-orange-600";
-    buttonContent = (
-      <Flame 
-        className="w-24 h-24 text-amber-100 fill-amber-100/30 animate-pulse transition-all duration-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.4)]" 
-        strokeWidth={1.5} 
-      />
+    buttonContent = isWeatherOnInCenter ? null : (
+      <div className="flex flex-col items-center justify-center">
+        <Flame 
+          className="w-16 h-16 mb-2 text-amber-100 fill-amber-100/30 animate-pulse transition-all duration-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.4)]" 
+          strokeWidth={1.5} 
+        />
+        <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+          {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+        </div>
+      </div>
     );
   } else if (currentTheme === "thingyan") {
     shapeClass = "rounded-full";
     rippleShapeClass = "rounded-full";
     rippleColor = "bg-sky-500/20";
     baseColorClass = "border-sky-300 bg-gradient-to-b from-sky-500 to-blue-600";
-    buttonContent = (
-      <Droplets 
-        className="w-24 h-24 text-sky-100 fill-sky-100/30 animate-bounce transition-all duration-300 drop-shadow-[0_0_15px_rgba(14,165,233,0.4)]" 
-        strokeWidth={1.5} 
-      />
+    buttonContent = isWeatherOnInCenter ? null : (
+      <div className="flex flex-col items-center justify-center">
+        <Droplets 
+          className="w-16 h-16 mb-2 text-sky-100 fill-sky-100/30 animate-bounce transition-all duration-300 drop-shadow-[0_0_15px_rgba(14,165,233,0.4)]" 
+          strokeWidth={1.5} 
+        />
+        <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+          {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+        </div>
+      </div>
     );
   } else if (currentTheme === "custom") {
     const finalIcon = activeCustomTheme ? activeCustomTheme.icon : (settings.customThemeIcon || "Sparkles");
@@ -354,25 +387,46 @@ export default function HeroSection() {
          <RealisticMoon 
            age={moonAge} 
            size={220} 
-           className={`hover:scale-105 transition-transform duration-500 ${interactiveAnim}`} 
+           className={`hover:scale-105 transition-transform duration-500`} 
            customImageUrl={moonPhaseImage} 
+           pulseDuration={settings.ripplePulseDuration || 6}
          />
        );
+    } else if (isWeatherOnInCenter) {
+       buttonContent = null;
     } else if (CustomIcon) {
       buttonContent = (
-        <CustomIcon 
-          className={`w-24 h-24 text-white fill-white/10 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] ${interactiveAnim}`}
-          strokeWidth={1.5}
-        />
+        <div className="flex flex-col items-center justify-center">
+          <motion.div
+             animate={{ scale: finalInteractive === "pulse" ? [1, 1.06, 1] : 1, y: finalInteractive === "bounce" ? [0, -8, 0] : 0 }}
+             transition={{ duration: settings.ripplePulseDuration || 6, repeat: Infinity, ease: "easeInOut" }}
+             className="mb-2"
+          >
+            <CustomIcon 
+              className={`w-16 h-16 text-white fill-white/10 transition-all drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]`}
+              strokeWidth={1.5}
+            />
+          </motion.div>
+          <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+            {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+          </div>
+        </div>
       );
     } else if (finalIcon.startsWith("http://") || finalIcon.startsWith("https://") || finalIcon.startsWith("data:image/")) {
       buttonContent = (
-        <img 
-          src={finalIcon} 
-          className={`w-[204px] h-[204px] rounded-full object-cover transition-transform duration-500 hover:scale-105 ${interactiveAnim}`} 
-          alt="Custom Theme Icon" 
-          referrerPolicy="no-referrer" 
-        />
+        <div className="flex flex-col items-center justify-center">
+          <motion.img 
+            src={finalIcon} 
+            className={`w-[140px] h-[140px] rounded-full object-cover transition-transform hover:scale-105 mb-2`}
+            animate={{ scale: finalInteractive === "pulse" ? [1, 1.06, 1] : 1, y: finalInteractive === "bounce" ? [0, -6, 0] : 0 }}
+            transition={{ duration: settings.ripplePulseDuration || 6, repeat: Infinity, ease: "easeInOut" }}
+            alt="Custom Theme Icon" 
+            referrerPolicy="no-referrer" 
+          />
+          <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+            {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+          </div>
+        </div>
       );
     } else {
       // Direct string, custom emoji/word written by user
@@ -380,11 +434,16 @@ export default function HeroSection() {
       // Detect if it is primarily an emoji/very short text
       const isShort = customVal.length <= 3;
       buttonContent = (
-        <span className={`select-none font-bold text-white tracking-tight leading-none filter drop-shadow-[0_0_15px_rgba(255,255,255,0.45)] transition-all duration-300 block ${interactiveAnim} ${
-          isShort ? "text-7xl" : "text-xl px-2 text-center break-words max-w-[150px]"
-        }`}>
-          {customVal}
-        </span>
+        <div className="flex flex-col items-center justify-center">
+          <span className={`select-none font-bold text-white tracking-tight leading-none filter drop-shadow-[0_0_15px_rgba(255,255,255,0.45)] transition-all duration-300 block mb-2 ${interactiveAnim} ${
+            isShort ? "text-5xl" : "text-base px-2 text-center break-words max-w-[150px]"
+          }`}>
+            {customVal}
+          </span>
+          <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+            {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+          </div>
+        </div>
       );
     }
   }
@@ -427,17 +486,106 @@ export default function HeroSection() {
   let hasZeroBorder = baseColorClass.includes("border-0");
   let buttonClasses = `w-[220px] h-[220px] ${shapeClass} ${hasZeroBorder ? '' : 'border-[8px]'} ${baseColorClass} flex flex-col items-center justify-center relative z-20 text-white shadow-xl overflow-hidden transition-all duration-500`;
 
-  const renderWeatherIcon = () => {
+  const renderWeatherIcon = (colorOverride?: string) => {
+    const style = colorOverride ? { color: colorOverride } : undefined;
+    const cls = colorOverride ? "" : "mr-1.5";
     if (condition.includes("Cloudy") || condition.includes("Fog")) {
-      return <Cloud className="w-4 h-4 mr-1.5 text-slate-400" />;
+      return <Cloud className={`w-4 h-4 ${cls} text-slate-400`} style={style} />;
     } else if (condition.includes("Rain")) {
-      return <CloudRain className="w-4 h-4 mr-1.5 text-blue-400" />;
+      return <CloudRain className={`w-4 h-4 ${cls} text-blue-400`} style={style} />;
     } else if (condition.includes("Snow")) {
-      return <CloudSnow className="w-4 h-4 mr-1.5 text-blue-200" />;
+      return <CloudSnow className={`w-4 h-4 ${cls} text-blue-200`} style={style} />;
     } else if (condition.includes("Storm")) {
-      return <CloudLightning className="w-4 h-4 mr-1.5 text-purple-400" />;
+      return <CloudLightning className={`w-4 h-4 ${cls} text-purple-400`} style={style} />;
     }
-    return isDay ? <Sun className="w-4 h-4 mr-1.5 text-amber-500" /> : <Moon className="w-4 h-4 mr-1.5 text-indigo-400" />;
+    return isDay ? (
+      <Sun className={`w-4 h-4 ${cls} text-amber-500`} style={style} />
+    ) : (
+      <Moon className={`w-4 h-4 ${cls} text-indigo-400`} style={style} />
+    );
+  };
+
+  const renderLargeWeatherIcon = (colorOverride?: string) => {
+    const style = colorOverride ? { color: colorOverride } : undefined;
+    if (condition.includes("Cloudy") || condition.includes("Fog")) return <Cloud className="w-10 h-10 mb-1 drop-shadow-md text-slate-400" style={style} strokeWidth={2} />;
+    if (condition.includes("Rain")) return <CloudRain className="w-10 h-10 mb-1 drop-shadow-md text-blue-400" style={style} strokeWidth={2} />;
+    if (condition.includes("Snow")) return <CloudSnow className="w-10 h-10 mb-1 drop-shadow-md text-blue-200" style={style} strokeWidth={2} />;
+    if (condition.includes("Storm")) return <CloudLightning className="w-10 h-10 mb-1 drop-shadow-md text-purple-400" style={style} strokeWidth={2} />;
+    return isDay ? (
+      <Sun className="w-10 h-10 mb-1 drop-shadow-md text-amber-500" style={style} strokeWidth={2} />
+    ) : (
+      <Moon className="w-10 h-10 mb-1 drop-shadow-md text-indigo-400" style={style} strokeWidth={2} />
+    );
+  };
+
+  const renderCenterOverlay = () => {
+    if (!hasCenterBackground) return null;
+    if (!settings.showWeather && !settings.showLocation) {
+      const isMoonTheme = currentTheme === "moon" || (currentTheme === "custom" && isMoonActive);
+      // Only show overlay for Moon themes (since Moon doesn't have its own icon/text in buttonContent).
+      // For all other themes, buttonContent already renders the theme icon + dynamic text.
+      if (isMoonTheme) {
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] z-30">
+            <div className="flex flex-col items-center justify-center">
+              <Pointer className="w-14 h-14 text-white mb-2 drop-shadow-md" strokeWidth={1.5} />
+              <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
+                {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
+              </div>
+            </div>
+          </div>
+        );
+      }
+      return null;
+    }
+    
+    const weatherColor = settings.weatherTextColor || "#3b82f6";
+    const locationColor = settings.locationTextColor || "#10b981";
+
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
+        <div className="flex flex-col items-center justify-center space-y-1">
+          {settings.showLocation && city && (
+            <div 
+              className="text-[10px] font-bold tracking-[0.14em] uppercase mb-1 drop-shadow-md opacity-95"
+              style={{ color: locationColor }}
+            >
+              {city.split(',')[0]} WEATHER
+            </div>
+          )}
+          {settings.showWeather && (
+            <>
+               <div style={{ color: weatherColor }}>
+                 {renderLargeWeatherIcon(weatherColor)}
+               </div>
+               {temp !== null && (
+                 <div 
+                   className="text-4xl font-extrabold tracking-tight leading-none mb-0.5 drop-shadow-lg"
+                   style={{ color: weatherColor }}
+                 >
+                   {temp.toFixed(1)}°C
+                 </div>
+               )}
+               <div 
+                 className="text-[13px] font-semibold opacity-95 mb-1.5 drop-shadow-md"
+                 style={{ color: weatherColor }}
+               >
+                 {condition}
+               </div>
+               {precip !== undefined && precip !== null && (
+                 <div 
+                   className="flex items-center text-[10px] font-semibold opacity-90 mt-1 drop-shadow-md bg-black/10 px-2 py-0.5 rounded-full"
+                   style={{ color: weatherColor }}
+                 >
+                   <CloudRain className="w-3.5 h-3.5 mr-1" strokeWidth={2.5} style={{ color: weatherColor }} />
+                   {precip.toFixed(1)}mm precip.
+                 </div>
+               )}
+            </>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -461,33 +609,29 @@ export default function HeroSection() {
         </div>
         
         <div className="min-h-[1.5rem] flex flex-wrap items-center justify-center gap-2 mt-3 z-20 relative">
-          {settings.showWeather && (
+          {(settings.showWeather || settings.showLocation) && !hasCenterBackground && (
             <motion.div 
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center text-slate-500 dark:text-slate-300 text-xs font-semibold space-x-2 bg-slate-100/60 dark:bg-slate-800/40 px-3 py-1 rounded-full border border-slate-250/50 dark:border-slate-750/30 backdrop-blur-sm shadow-sm transition-all"
             >
-              <span className="flex items-center text-blue-500 dark:text-blue-400">
-                {renderWeatherIcon()}
-              </span>
-              <span className="w-px h-3 bg-slate-300 dark:bg-slate-700" />
-              <span className="flex items-center space-x-1 font-medium text-slate-600 dark:text-slate-300">
-                <MapPin className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
-                <span>{weatherStr}</span>
-              </span>
+              {settings.showWeather && (
+                <span className="flex items-center" style={{ color: settings.weatherTextColor || "#3b82f6" }}>
+                  {renderWeatherIcon(settings.weatherTextColor || "#3b82f6")}
+                </span>
+              )}
+              {settings.showWeather && settings.showLocation && (
+                <span className="w-px h-3 bg-slate-300 dark:bg-slate-700" />
+              )}
+              {settings.showLocation && (
+                <span className="flex items-center space-x-1 font-medium" style={{ color: settings.locationTextColor || "#10b981" }}>
+                  <MapPin className="w-3.5 h-3.5 animate-pulse" style={{ color: settings.locationTextColor || "#10b981" }} />
+                  <span>{weatherStr}</span>
+                </span>
+              )}
             </motion.div>
           )}
 
-          {currentTheme === "moon" && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center space-x-2 py-1 px-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 rounded-full text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase tracking-[0.2em]"
-            >
-               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-               <span>Lunar Phase: {moonPhase.replace(/[^a-zA-Z\s]/g, '').trim()}</span>
-            </motion.div>
-          )}
         </div>
       </div>
 
@@ -499,11 +643,10 @@ export default function HeroSection() {
             <motion.div 
               className={`absolute inset-0 ${rippleShapeClass} pointer-events-none ${rippleColor}`}
               animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.6, 0, 0.6],
+                scale: [1, 1.25, 1],
               }}
               transition={{
-                duration: settings.ripplePulseDuration || 3,
+                duration: settings.ripplePulseDuration || 6,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
@@ -515,7 +658,15 @@ export default function HeroSection() {
             <motion.button
               onClick={handleToggle}
               className={buttonClasses}
-              whileHover={{ scale: settings.buttonHoverZoom !== undefined ? settings.buttonHoverZoom : 1.03 }}
+              animate={{
+                scale: [1, 1.04, 1]
+              }}
+              transition={{
+                duration: settings.ripplePulseDuration || 6,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              whileHover={{ scale: settings.buttonHoverZoom !== undefined ? settings.buttonHoverZoom : 1.08 }}
               whileTap={{ scale: 0.95 }}
             >
               {/* Dynamic Image Background visible above container color but below content */}
@@ -539,6 +690,9 @@ export default function HeroSection() {
               {/* Content overlay */}
               <div className="relative z-10 flex flex-col items-center justify-center drop-shadow-md">
                 {buttonContent}
+                
+                {/* Center Weather & Location Overlay */}
+                {renderCenterOverlay()}
               </div>
             </motion.button>
           ) : (
@@ -556,28 +710,16 @@ export default function HeroSection() {
               )}
               <div className="relative z-10 flex flex-col items-center justify-center drop-shadow-md">
                 {buttonContent}
+                
+                {/* Center Weather & Location Overlay */}
+                {renderCenterOverlay()}
               </div>
             </button>
           )}
         </div>
 
         {/* Simple & Clean Attendance status indicators */}
-        <div className="mt-8 flex flex-col items-center space-y-1 text-center select-none z-30 animate-fade-in max-w-[270px] w-full mx-auto px-1">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-            Attendance Status
-          </span>
-
-          <span
-            className={`text-3xl font-black tracking-widest uppercase transition-all duration-300 ${themeIconColor}`}
-          >
-            {displayStatusStr}
-          </span>
-
-          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5 animate-pulse mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 shadow-[0_0_6px_rgba(99,102,241,0.5)]" />
-            <span>{isCheckedIn ? "TAP TO CHECK OUT" : "TAP TO CHECK IN"}</span>
-          </span>
-        </div>
+        {/* Attendance status block has been removed */}
 
         {/* Fullscreen Particles rendering */}
         {particles.map((p: any) => {

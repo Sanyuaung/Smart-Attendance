@@ -67,6 +67,8 @@ export interface Settings {
   customThemes?: CustomThemeDefinition[];
   selectedCustomThemeId?: string;
   moonCustomPhases?: Record<string, { image?: string, description?: string, customThemeId?: string, particleEmojis?: string }>;
+  weatherTextColor?: string;
+  locationTextColor?: string;
 }
 
 export interface AppState {

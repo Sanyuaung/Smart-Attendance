@@ -87,6 +87,8 @@ const defaultSettings: Settings = {
   ],
   selectedCustomThemeId: "neon-cyber",
   moonCustomPhases: {},
+  weatherTextColor: "#3b82f6",
+  locationTextColor: "#10b981",
 };
 
 const defaultImages = [
