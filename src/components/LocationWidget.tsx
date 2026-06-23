@@ -39,8 +39,6 @@ export default function LocationWidget() {
 
   if (!settings.showLocation) return null;
 
-  const mapApiKey = "AIzaSyDkQ9LudeolipNJ3X4acWGftlDACtnTJSU";
-
   return (
     <div className="flex flex-col space-y-3 mb-8">
       <div className="flex items-center justify-between">
