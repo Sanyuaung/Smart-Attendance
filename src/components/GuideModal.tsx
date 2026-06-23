@@ -1,5 +1,5 @@
 import React from "react";
-import { X, BookOpen, Settings, Moon, Image as ImageIcon, Sparkles, Smartphone, ShieldCheck, HelpCircle, Sliders } from "lucide-react";
+import { X, BookOpen, Settings, Moon, Image as ImageIcon, Sparkles, Smartphone, ShieldCheck, HelpCircle, Sliders, Cpu, Calculator } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GuideModalProps {
@@ -210,6 +210,111 @@ export default function GuideModal({ isOpen, onClose }: GuideModalProps) {
                     <li><strong>Unsplash Keywords:</strong> Type <code>$minimal</code> or <code>$abstract</code> to pull high-quality dynamic photos.</li>
                     <li><strong>Velocity Control:</strong> Adjust rotation speed from <strong>Instant</strong> to <strong>Slow (2-minute cycles)</strong> transitions.</li>
                   </ul>
+                </div>
+              </section>
+
+              {/* 6. Dynamic Calculations & Effect Engineering */}
+              <section className="space-y-5">
+                <div className="flex items-center space-x-3 text-slate-800 dark:text-slate-200">
+                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+                    <Cpu className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">Effect Calculations & Math</h3>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-tighter">How the visuals work</p>
+                  </div>
+                </div>
+                <div className="pl-12 space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                      <Moon className="w-3.5 h-3.5 mr-1.5 text-indigo-500" /> Moon Phase Calculations
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Our app tracks the natural 29.5-day lunar cycle. By tracking the number of days since a known starting moon cycle, the system calculates the exact age of the moon today and dynamically updates to show one of the 8 standard moon phases (from a tiny crescent to a beautiful full moon).
+                    </p>
+                    {/* Moon phase mathematical sample */}
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800/50 space-y-2 font-mono text-[10px] text-slate-600 dark:text-slate-400">
+                      <div className="font-sans font-bold text-indigo-600 dark:text-indigo-400 text-[10px] uppercase tracking-wider mb-1">
+                        Concrete Math Example: Lunar Age
+                      </div>
+                      <p className="leading-relaxed">
+                        <strong>1. Target Date:</strong> June 23, 2026 (Julian Date: <code className="text-slate-800 dark:text-slate-200">2,461,214.58</code>)
+                        <br />
+                        <strong>2. Epoch Reference:</strong> Jan 6, 2000 New Moon (Julian Date: <code className="text-slate-800 dark:text-slate-200">2,451,550.1</code>)
+                        <br />
+                        <strong>3. Days Elapsed:</strong> 2,461,214.58 − 2,451,550.1 = <code className="text-slate-800 dark:text-slate-200">9,664.48 days</code>
+                        <br />
+                        <strong>4. Cycle Remainder:</strong> 9,664.48 % 29.53059 (Synodic Month) = <code className="text-slate-800 dark:text-slate-200">7.15 days</code> (Current Lunar Age)
+                        <br />
+                        <strong>5. Phase Mapping:</strong> (7.15 / 29.53059) × 8 = <code className="text-slate-800 dark:text-slate-200">1.93</code> (Rounds to Phase index 2)
+                        <br />
+                        <strong>Resulting Phase:</strong> <code className="text-indigo-600 dark:text-indigo-400 font-bold font-sans">🌓 First Quarter Moon</code>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                      <Sliders className="w-3.5 h-3.5 mr-1.5 text-pink-500" /> Smooth Button Ripple Waves
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      The liquid ripple circles expanding behind the main button are designed using timed step delays. Each outer circle starts expanding slightly after the inner circle, creating a continuous, relaxing wave pulse matched perfectly to your custom wave speed.
+                    </p>
+                    {/* Ripple delay mathematical sample */}
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800/50 space-y-2 font-mono text-[10px] text-slate-600 dark:text-slate-400">
+                      <div className="font-sans font-bold text-pink-600 dark:text-pink-400 text-[10px] uppercase tracking-wider mb-1">
+                        Concrete Math Example: Ripple Timing
+                      </div>
+                      <p className="leading-relaxed">
+                        <strong>1. User Cooldown Setting:</strong> <code className="text-slate-800 dark:text-slate-200">6 seconds</code> Wave Ripple Duration
+                        <br />
+                        <strong>2. Expansion Delay Factor:</strong> <code className="text-slate-800 dark:text-slate-200">index × 0.25 seconds</code>
+                        <br />
+                        <strong>3. Ring-by-Ring Animation Start Delays:</strong>
+                        <br />
+                        &nbsp;&nbsp;• Ring 1 (Center): <code className="text-pink-600 dark:text-pink-400">0.00s delay</code> (Expands immediately)
+                        <br />
+                        &nbsp;&nbsp;• Ring 2 (Middle): <code className="text-pink-600 dark:text-pink-400">0.25s delay</code> (Starts 250ms later)
+                        <br />
+                        &nbsp;&nbsp;• Ring 3 (Outer): <code className="text-pink-600 dark:text-pink-400">0.50s delay</code> (Starts 500ms later)
+                        <br />
+                        <strong>Result:</strong> Smooth, non-concurring overlapping expanding gradient wave rings.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                      <Calculator className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> Animated Particle Styles
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      When checking in or checking out, celebration shimmers fly around your screen using physical speed vectors depending on the flow mode you select in Settings:
+                    </p>
+                    <ul className="text-[11px] text-slate-500 dark:text-slate-400 list-disc pl-5 space-y-1">
+                      <li><strong>Explode:</strong> Shimmers shoot out in every direction from where you clicked, like colorful mini-fireworks.</li>
+                      <li><strong>Rising:</strong> Gentle glowing dots float upwards like warm lanterns drifting into the night sky.</li>
+                      <li><strong>Falling:</strong> Shimmers glide gracefully downwards like soft, celebratory confetti or a gentle rainfall.</li>
+                    </ul>
+                    {/* Particle velocity mathematical sample */}
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800/50 space-y-2 font-mono text-[10px] text-slate-600 dark:text-slate-400">
+                      <div className="font-sans font-bold text-emerald-600 dark:text-emerald-400 text-[10px] uppercase tracking-wider mb-1">
+                        Concrete Math Example: Explode Velocity Vectors
+                      </div>
+                      <p className="leading-relaxed">
+                        <strong>1. Frame Coordinate Origin:</strong> User clicks at point <code className="text-slate-800 dark:text-slate-200">(X: 250px, Y: 400px)</code>
+                        <br />
+                        <strong>2. Trigonometric Vector Logic:</strong> Speed is distributed evenly across full circle coordinates (Angle <code className="text-slate-800 dark:text-slate-200">θ</code> between 0 and 360°)
+                        <br />
+                        <strong>3. Angle Example:</strong> 45° angle, Sparkle Speed (<code className="text-slate-800 dark:text-slate-200">v</code>) of 5px/frame
+                        <br />
+                        &nbsp;&nbsp;• Horizontal Vector: <code className="text-emerald-600 dark:text-emerald-400">vx = v × cos(45°) = 5 × 0.707 ≈ +3.54 px/frame</code>
+                        <br />
+                        &nbsp;&nbsp;• Vertical Vector: <code className="text-emerald-600 dark:text-emerald-400">vy = v × sin(45°) = 5 × 0.707 ≈ +3.54 px/frame</code>
+                        <br />
+                        <strong>Result:</strong> Particle moves diagonally down-right. With 360 unique angle vectors, you get a beautiful symmetrical fireworks circular burst!
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </section>
 

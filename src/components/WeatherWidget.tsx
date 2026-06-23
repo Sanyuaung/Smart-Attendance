@@ -26,7 +26,7 @@ export default function WeatherWidget() {
   if (!settings.showWeather) return null;
 
   // very basic weather code map
-  const isSunny = weather.weather_code <= 3;
+  const isSunny = weather ? weather.weather_code <= 3 : false;
   
   return (
     <div className="relative overflow-hidden mb-8 transition-opacity duration-300 min-h-[80px]">
@@ -40,7 +40,9 @@ export default function WeatherWidget() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Weather</p>
-              <h2 className="text-3xl font-bold italic">{Math.round(weather.temperature_2m)}°C</h2>
+              <h2 className="text-3xl font-bold italic">
+                {weather?.temperature_2m !== undefined ? Math.round(weather.temperature_2m) : "--"}°C
+              </h2>
               <p className="text-sm text-indigo-300">{isSunny ? "Sunny" : "Cloudy"}</p>
             </div>
             <div className="text-4xl text-indigo-400">
@@ -50,11 +52,11 @@ export default function WeatherWidget() {
           <div className="mt-4 flex space-x-4 text-[10px] text-slate-400 uppercase font-bold">
             <div className="flex items-center space-x-1">
               <Droplets className="w-3 h-3" />
-              <span>Humidity: {weather.relative_humidity_2m}%</span>
+              <span>Humidity: {weather?.relative_humidity_2m ?? "--"}%</span>
             </div>
             <div className="flex items-center space-x-1">
               <Wind className="w-3 h-3" />
-              <span>Wind: {weather.wind_speed_10m}km/h</span>
+              <span>Wind: {weather?.wind_speed_10m ?? "--"}km/h</span>
             </div>
           </div>
         </>

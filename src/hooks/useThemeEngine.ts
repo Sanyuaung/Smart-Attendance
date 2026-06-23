@@ -3,12 +3,33 @@ import { useStore } from "../store/useStore";
 
 export type EventTheme = "valentine" | "thadingyut" | "thingyan" | "christmas" | "moon" | "custom" | "none";
 
+/**
+ * Developer Math & Algorithm Guide: Moon Cycle Tracking
+ * ====================================================
+ * This function calculates the approximate "Lunar Age" (how many days into the 29.53-day cycle the moon is).
+ * It uses Julian Dates (JD) to make calculations robust across timezones, leap years, and centuries.
+ * 
+ * Main Algorithm Steps:
+ * 1. Find the milliseconds since Jan 1, 1970 UTC (`date.getTime()`).
+ * 2. Convert to total days since Epoch (`msPerDay` = 86,400,000 ms).
+ * 3. Offset to Julian Date scale by adding `2440587.5` (which represents the Julian Date of Jan 1, 1970).
+ * 4. Choose a verified New Moon landmark reference epoch: Jan 6, 2000 at 18:14 UTC -> Julian Date `2451550.1`.
+ * 5. Compute the elapsed days since that Landmark New Moon (`jd - newMoonJD`).
+ * 6. Find the current position within the active lunar cycle by performing a remainder modulo on the astronomical synodic month cycle:
+ *    `elapsedDays % 29.53058867 days`
+ * 7. Correct negative remainders (if analyzing dates historically prior to Jan 6, 2000) by wrapping them around.
+ * 
+ * Example Calculation: 
+ *   Input: June 23, 2026
+ *   Julian Date computed: 2,461,214.58
+ *   Landmark New Moon JD: 2,451,550.10
+ *   Days Elapsed: 2,461,214.58 - 2,451,550.10 = 9664.48 days
+ *   Remainder calculation: 9664.48 modulo 29.53058867 = 7.15 days (This is the Lunar Age, exactly in First Quarter phase!)
+ */
 function getMoonAge(date: Date): number {
-  // More accurate Julian Date-based calculation
   const msPerDay = 1000 * 60 * 60 * 24;
   const jd = (date.getTime() / msPerDay) + 2440587.5;
   const synodicMonth = 29.53058867;
-  // A known new moon was on Julian Date 2451550.1 (Jan 6, 2000 18:14 UTC)
   const newMoonJD = 2451550.1;
   let age = (jd - newMoonJD) % synodicMonth;
   if (age < 0) {
@@ -17,11 +38,24 @@ function getMoonAge(date: Date): number {
   return age;
 }
 
+/**
+ * Developer Math & Mapping Guide: Phase Splitting
+ * ================================================
+ * This function handles astronomical mapping from days (0 to 29.53) into exactly 8 distinct UI visual state indices (0 to 7).
+ * 
+ * Math mapping formulation:
+ * 1. Normalization: `normalizedProgress = (age / 29.53058867)` is a scale strictly between 0.0 and 1.0. 
+ * 2. Scaling: Multiplying by 8 maps this to `[0, 8)`.
+ * 3. Centering Offset Correction: Because pure flooring or rounding around indices would make the "New Moon" 
+ *    exist on both extremes, `Math.round(phase) % 8` perfectly aligns and centers each of the 8 stages symmetrically:
+ *    - Case 0: Perfectly centered around 0 days (New Moon)
+ *    - Case 2: Perfectly centered around 7.38 days (First Quarter Moon, ~25% of the total 29.53 cycle)
+ *    - Case 4: Perfectly centered around 14.77 days (Full Moon, ~50% of the total 29.53 cycle)
+ *    - Case 6: Perfectly centered around 22.15 days (Third Quarter Moon, ~75% of the total 29.53 cycle)
+ */
 function getMoonPhase(date: Date): string {
   const age = getMoonAge(date);
   
-  // Normalize into 8 phases (each is ~3.69 days)
-  // Shift by half a phase so that 0 is perfectly centered on New Moon
   const phase = (age / 29.53058867) * 8;
   const roundedPhase = Math.round(phase) % 8;
 

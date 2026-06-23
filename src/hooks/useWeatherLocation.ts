@@ -15,6 +15,10 @@ export function useWeatherLocation() {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,is_day,weather_code,precipitation`);
         const data = await res.json();
         
+        if (!data || !data.current) {
+          throw new Error("No current weather data in response");
+        }
+        
         let condition = "Clear";
         const code = data.current.weather_code;
         if (code >= 1 && code <= 3) condition = "Partly Cloudy";
@@ -35,7 +39,7 @@ export function useWeatherLocation() {
             const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
             if (geoRes.ok) {
               const geoData = await geoRes.json();
-              finalCity = geoData.city || geoData.locality || geoData.principalSubdivision || "";
+              finalCity = geoData?.city || geoData?.locality || geoData?.principalSubdivision || "";
             }
           } catch (e) {
             console.warn("BigDataCloud failed, trying Nominatim...", e);
@@ -52,7 +56,7 @@ export function useWeatherLocation() {
             });
             if (geoRes.ok) {
               const geoData = await geoRes.json();
-              finalCity = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.county || geoData.address.state || "";
+              finalCity = geoData?.address?.city || geoData?.address?.town || geoData?.address?.village || geoData?.address?.county || geoData?.address?.state || "";
             }
           } catch (e) {
             console.warn("Nominatim fallback failed", e);

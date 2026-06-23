@@ -108,6 +108,24 @@ export default function HeroSection() {
       let targetX = 0;
       let targetY = 0;
 
+      /**
+       * DEVELOPER PHYSICS & VECTOR GUIDE
+       * ================================
+       * We calculate start and destination coordinates based on the selected direction mode:
+       * 
+       * 1. EXPLODE (Trigonometric Circular Burst):
+       *    - Starting position: Centered on the user's viewport screen.
+       *    - Angle Selection: Choose a random radian angle θ uniformly between [0, 2π].
+       *    - Velocity Distance: Select a random displacement distance.
+       *    - Coordinate Projection: Project using basic trigonometric vectors:
+       *      X_target = X_start + cos(θ) * distance
+       *      Y_target = Y_start + sin(θ) * distance
+       * 
+       * 2. RISING / FALLING (Vertical Vector Flow):
+       *    - Starting position: Placed just offscreen (-50px for falling, +50px offscreen height for rising).
+       *    - Ending position: Sent to the opposite side of the screen.
+       *    - Dispersion: Apply a small randomized horizontal offset to simulate natural draft drift.
+       */
       if (isExplode) {
         startX = window.innerWidth / 2;
         startY = window.innerHeight / 2 + (window.scrollY || 0);
