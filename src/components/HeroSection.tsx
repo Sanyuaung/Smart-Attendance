@@ -62,11 +62,21 @@ export default function HeroSection() {
 
   const spawnParticles = () => {
     let customEmojisStr = "✨";
-    if (currentTheme === "custom") {
+    let moonPhaseEmojis = "";
+
+    // Check if the current moon phase has custom particle emojis defined
+    if ((isMoonActive || currentTheme === "moon") && settings.moonCustomPhases?.[moonPhase]?.particleEmojis) {
+      moonPhaseEmojis = settings.moonCustomPhases[moonPhase].particleEmojis || "";
+    }
+
+    if (moonPhaseEmojis.trim().length > 0) {
+      customEmojisStr = moonPhaseEmojis;
+    } else if (currentTheme === "custom") {
       customEmojisStr = activeCustomTheme?.emojis || settings.themeEmojis?.["custom"] || "✨ 🍭 🎉";
     } else {
       customEmojisStr = settings.themeEmojis?.[currentTheme] || "✨";
     }
+    
     let customEmojis = customEmojisStr.split(/\s+/).filter(Boolean);
     if (customEmojis.length === 0) customEmojis = ["✨"];
     if (customEmojis.length > 5) customEmojis = customEmojis.slice(0, 5); // support more emojis if they want

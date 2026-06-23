@@ -66,7 +66,7 @@ export interface Settings {
   customThemeInteractiveEffect?: "bounce" | "pulse" | "spin" | "wiggle" | "none";
   customThemes?: CustomThemeDefinition[];
   selectedCustomThemeId?: string;
-  moonCustomPhases?: Record<string, { image?: string, description?: string, customThemeId?: string }>;
+  moonCustomPhases?: Record<string, { image?: string, description?: string, customThemeId?: string, particleEmojis?: string }>;
 }
 
 export interface AppState {

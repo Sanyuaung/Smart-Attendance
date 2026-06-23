@@ -1750,6 +1750,18 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                                   <option key={t.id} value={t.id}>{t.name}</option>
                                 ))}
                              </select>
+                             <input 
+                               type="text"
+                               placeholder="Particle Emojis (Space-separated list)..."
+                               value={phaseData.particleEmojis || ""}
+                               onChange={e => handleUpdateLocalSettings({
+                                 moonCustomPhases: {
+                                    ...(localSettings.moonCustomPhases || {}),
+                                    [phase]: { ...phaseData, particleEmojis: e.target.value }
+                                 }
+                               })}
+                               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] rounded-md p-2 dark:text-white outline-none focus:ring-1 focus:ring-indigo-500/50"
+                             />
                           </div>
                         );
                      })}
