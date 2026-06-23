@@ -303,9 +303,17 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
     const age = getMoonAgeForCell(year, month, day);
     const phase = (age / 29.53058867) * 8;
     const roundedPhase = Math.round(phase) % 8;
-    if (roundedPhase === 0) return "🌑";
-    if (roundedPhase === 4) return "🌕";
-    return null;
+    switch (roundedPhase) {
+      case 0: return "🌑";
+      case 1: return "🌒";
+      case 2: return "🌓";
+      case 3: return "🌔";
+      case 4: return "🌕";
+      case 5: return "🌖";
+      case 6: return "🌗";
+      case 7: return "🌘";
+      default: return "🌑";
+    }
   };
 
   const getMoonPhaseNameForCell = (year: number, month: number, day: number) => {
@@ -313,17 +321,26 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
     const phase = (age / 29.53058867) * 8;
     const roundedPhase = Math.round(phase) % 8;
 
-    switch (roundedPhase) {
-      case 0: return "New Moon 🌑";
-      case 1: return "Waxing Crescent";
-      case 2: return "First Quarter";
-      case 3: return "Waxing Gibbous";
-      case 4: return "Full Moon 🌕";
-      case 5: return "Waning Gibbous";
-      case 6: return "Third Quarter";
-      case 7: return "Waning Crescent";
-      default: return "New Moon 🌑";
-    }
+switch (roundedPhase) {
+  case 0:
+    return "New Moon 🌑";
+  case 1:
+    return "Waxing Crescent 🌒";
+  case 2:
+    return "First Quarter 🌓";
+  case 3:
+    return "Waxing Gibbous 🌔";
+  case 4:
+    return "Full Moon 🌕";
+  case 5:
+    return "Waning Gibbous 🌖";
+  case 6:
+    return "Third Quarter 🌗";
+  case 7:
+    return "Waning Crescent 🌘";
+  default:
+    return "New Moon 🌑";
+}
   };
 
   const handleCellClick = (year: number, month: number, day: number) => {
