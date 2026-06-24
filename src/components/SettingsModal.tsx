@@ -587,13 +587,13 @@ switch (roundedPhase) {
                   <div className="flex items-center space-x-2">
                     <input 
                       type="color" 
-                      value={localSettings.weatherTextColor || "#3b82f6"} 
+                      value={localSettings.weatherTextColor || "#ffffff"} 
                       onChange={(e) => handleUpdateLocalSettings({ weatherTextColor: e.target.value })}
                       className="w-7 h-7 rounded-md cursor-pointer border-0 p-0 bg-transparent"
                     />
                     <input 
                       type="text" 
-                      value={localSettings.weatherTextColor || "#3b82f6"} 
+                      value={localSettings.weatherTextColor || "#ffffff"} 
                       onChange={(e) => handleUpdateLocalSettings({ weatherTextColor: e.target.value })}
                       className="w-20 text-[11px] font-mono px-1.5 py-0.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-slate-700 dark:text-slate-300"
                     />
@@ -632,13 +632,13 @@ switch (roundedPhase) {
                   <div className="flex items-center space-x-2">
                     <input 
                       type="color" 
-                      value={localSettings.locationTextColor || "#10b981"} 
+                      value={localSettings.locationTextColor || "#ffffff"} 
                       onChange={(e) => handleUpdateLocalSettings({ locationTextColor: e.target.value })}
                       className="w-7 h-7 rounded-md cursor-pointer border-0 p-0 bg-transparent"
                     />
                     <input 
                       type="text" 
-                      value={localSettings.locationTextColor || "#10b981"} 
+                      value={localSettings.locationTextColor || "#ffffff"} 
                       onChange={(e) => handleUpdateLocalSettings({ locationTextColor: e.target.value })}
                       className="w-20 text-[11px] font-mono px-1.5 py-0.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-slate-700 dark:text-slate-300"
                     />

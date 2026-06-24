@@ -255,7 +255,7 @@ export default function HeroSection() {
       : status.toUpperCase();
 
   const hasCenterBackground = (settings.showBackgroundImages && images.length > 0) || currentTheme === "moon" || isMoonActive;
-  const isWeatherOnInCenter = hasCenterBackground && (settings.showWeather || settings.showLocation);
+  const isWeatherOnInCenter = settings.showWeather || settings.showLocation;
 
   // Standard premium biometric look for simple and clear Smart Attendance
   let buttonContent = isWeatherOnInCenter ? null : (
@@ -537,45 +537,83 @@ export default function HeroSection() {
   };
 
   const renderCenterOverlay = () => {
-    if (!hasCenterBackground) return null;
     if (!settings.showWeather && !settings.showLocation) {
       const isMoonTheme = currentTheme === "moon" || (currentTheme === "custom" && isMoonActive);
       // Only show overlay for Moon themes (since Moon doesn't have its own icon/text in buttonContent).
       // For all other themes, buttonContent already renders the theme icon + dynamic text.
       if (isMoonTheme) {
         return (
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] z-30">
+          <motion.div 
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] z-30"
+            animate={settings.animationsEnabled ? {
+              scale: [0.98, 1.04, 0.98],
+            } : undefined}
+            transition={{
+              duration: settings.ripplePulseDuration || 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
             <div className="flex flex-col items-center justify-center">
-              <Pointer className="w-14 h-14 text-white mb-2 drop-shadow-md" strokeWidth={1.5} />
+              <Pointer className="w-14 h-14 text-white mb-2 drop-shadow-md animate-pulse" strokeWidth={1.5} />
               <div className="text-white font-bold tracking-widest text-lg drop-shadow-md">
                 {isCheckedIn ? "CHECKOUT" : "CHECKIN"}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       }
       return null;
     }
     
-    const weatherColor = settings.weatherTextColor || "#3b82f6";
-    const locationColor = settings.locationTextColor || "#10b981";
+    const weatherColor = settings.weatherTextColor || "#ffffff";
+    const locationColor = settings.locationTextColor || "#ffffff";
 
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
+      <motion.div 
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30"
+        animate={settings.animationsEnabled ? {
+          scale: [0.98, 1.02, 0.98],
+          opacity: [0.95, 1, 0.95]
+        } : undefined}
+        transition={{
+          duration: settings.ripplePulseDuration || 6,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
         <div className="flex flex-col items-center justify-center space-y-1">
           {settings.showLocation && city && (
-            <div 
+            <motion.div 
               className="text-[10px] font-bold tracking-[0.14em] uppercase mb-1 drop-shadow-md opacity-95"
               style={{ color: locationColor }}
+              animate={settings.animationsEnabled ? {
+                y: [0, -2, 0]
+              } : undefined}
+              transition={{
+                duration: settings.ripplePulseDuration || 6,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
             >
               {city.split(',')[0]} WEATHER
-            </div>
+            </motion.div>
           )}
           {settings.showWeather && (
             <>
-               <div style={{ color: weatherColor }}>
+               <motion.div 
+                 style={{ color: weatherColor }}
+                 animate={settings.animationsEnabled ? {
+                   scale: [1, 1.06, 1]
+                 } : undefined}
+                 transition={{
+                   duration: settings.ripplePulseDuration || 6,
+                   repeat: Infinity,
+                   ease: "easeInOut"
+                 }}
+               >
                  {renderLargeWeatherIcon(weatherColor)}
-               </div>
+               </motion.div>
                {temp !== null && (
                  <div 
                    className="text-4xl font-extrabold tracking-tight leading-none mb-0.5 drop-shadow-lg"
@@ -591,18 +629,26 @@ export default function HeroSection() {
                  {condition}
                </div>
                {precip !== undefined && precip !== null && (
-                 <div 
+                 <motion.div 
                    className="flex items-center text-[10px] font-semibold opacity-90 mt-1 drop-shadow-md bg-black/10 px-2 py-0.5 rounded-full"
                    style={{ color: weatherColor }}
+                   animate={settings.animationsEnabled ? {
+                     y: [0, 2, 0]
+                   } : undefined}
+                   transition={{
+                     duration: settings.ripplePulseDuration || 6,
+                     repeat: Infinity,
+                     ease: "easeInOut"
+                   }}
                  >
                    <CloudRain className="w-3.5 h-3.5 mr-1" strokeWidth={2.5} style={{ color: weatherColor }} />
                    {precip.toFixed(1)}mm precip.
-                 </div>
+                 </motion.div>
                )}
             </>
           )}
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -627,49 +673,38 @@ export default function HeroSection() {
         </div>
         
         <div className="min-h-[1.5rem] flex flex-wrap items-center justify-center gap-2 mt-3 z-20 relative">
-          {(settings.showWeather || settings.showLocation) && !hasCenterBackground && (
-            <motion.div 
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center text-slate-500 dark:text-slate-300 text-xs font-semibold space-x-2 bg-slate-100/60 dark:bg-slate-800/40 px-3 py-1 rounded-full border border-slate-250/50 dark:border-slate-750/30 backdrop-blur-sm shadow-sm transition-all"
-            >
-              {settings.showWeather && (
-                <span className="flex items-center" style={{ color: settings.weatherTextColor || "#3b82f6" }}>
-                  {renderWeatherIcon(settings.weatherTextColor || "#3b82f6")}
-                </span>
-              )}
-              {settings.showWeather && settings.showLocation && (
-                <span className="w-px h-3 bg-slate-300 dark:bg-slate-700" />
-              )}
-              {settings.showLocation && (
-                <span className="flex items-center space-x-1 font-medium" style={{ color: settings.locationTextColor || "#10b981" }}>
-                  <MapPin className="w-3.5 h-3.5 animate-pulse" style={{ color: settings.locationTextColor || "#10b981" }} />
-                  <span>{weatherStr}</span>
-                </span>
-              )}
-            </motion.div>
-          )}
-
+          {/* Upper weather indicator removed to avoid redundancy as it is centered inside the biometric circle */}
         </div>
       </div>
 
       <div className="relative w-full py-4 flex flex-col items-center justify-center overflow-visible z-10">
         <div className="relative group cursor-pointer select-none">
           
-          {/* Animated Ripple Ring Behind Button */}
-          {settings.animationsEnabled && (
-            <motion.div 
-              className={`absolute inset-0 ${rippleShapeClass} pointer-events-none ${rippleColor}`}
-              animate={{
-                scale: [1, 1.25, 1],
-              }}
-              transition={{
-                duration: settings.ripplePulseDuration || 6,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-          )}
+          {/* Animated Ripple Rings Behind Button */}
+          {settings.animationsEnabled && [0, 1, 2].map((idx) => {
+            // Perfect concentric breathing in absolute unison:
+            // Scales expand and shrink in perfect lockstep to match the button breathing.
+            const maxScale = 1.15 + (idx * 0.15); // idx=0 -> 1.15, idx=1 -> 1.30, idx=2 -> 1.45
+            const maxOpacity = 0.5 - (idx * 0.15); // idx=0 -> 0.50, idx=1 -> 0.35, idx=2 -> 0.20
+            const minOpacity = 0.15 - (idx * 0.05); // idx=0 -> 0.15, idx=1 -> 0.10, idx=2 -> 0.05
+            
+            return (
+              <motion.div 
+                key={idx}
+                className={`absolute inset-0 ${rippleShapeClass} pointer-events-none ${rippleColor}`}
+                initial={{ scale: 1, opacity: maxOpacity }}
+                animate={{
+                  scale: [1, maxScale, 1],
+                  opacity: [maxOpacity, minOpacity, maxOpacity]
+                }}
+                transition={{
+                  duration: settings.ripplePulseDuration || 6,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            );
+          })}
 
           {/* The Action Button */}
           {settings.animationsEnabled ? (
@@ -695,9 +730,19 @@ export default function HeroSection() {
                       key={currentImageIndex}
                       src={images[currentImageIndex]}
                       initial={{ opacity: 0, scale: 1.15 }}
-                      animate={{ opacity: 0.7, scale: 1 }}
+                      animate={{ 
+                        opacity: 0.7, 
+                        scale: [1, 1.08, 1] 
+                      }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 1.2, ease: "easeInOut" }}
+                      transition={{ 
+                        scale: {
+                          duration: settings.ripplePulseDuration || 6,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        },
+                        opacity: { duration: 1.2, ease: "easeInOut" }
+                      }}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                   </AnimatePresence>
