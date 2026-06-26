@@ -71,6 +71,8 @@ export interface Settings {
   locationTextColor?: string;
   customWeatherEnabled?: boolean;
   customWeatherCondition?: "Clear" | "Partly Cloudy" | "Foggy" | "Rainy" | "Snowy" | "Stormy";
+  dashboardViewEnabled?: boolean;
+  dashboardRole?: "CPO" | "Head Level" | "Manager" | "Standard";
 }
 
 export interface AppState {

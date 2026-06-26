@@ -98,6 +98,8 @@ const defaultSettings: Settings = {
   locationTextColor: "#ffffff",
   customWeatherEnabled: false,
   customWeatherCondition: "Clear",
+  dashboardViewEnabled: false,
+  dashboardRole: "Standard",
 };
 
 const defaultImages = [

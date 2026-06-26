@@ -9,6 +9,7 @@ import GuideModal from "./components/GuideModal";
 import DailyStatus from "./components/DailyStatus";
 import { useWeatherLocation } from "./hooks/useWeatherLocation";
 import WeatherBannerBackground from "./components/WeatherBannerBackground";
+import CPODashboard from "./components/CPODashboard";
 
 export default function App() {
   const { settings, user, images, imageTransitionSpeed } = useStore();
@@ -148,7 +149,7 @@ export default function App() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1000px] mx-auto w-full px-4 sm:px-6 py-6 pb-24 flex-1">
+      <div className={`${settings.dashboardViewEnabled && settings.dashboardRole === "CPO" ? "w-full max-w-none px-4 md:px-8 xl:px-12" : "max-w-[1000px] mx-auto w-full px-4 sm:px-6"} py-6 pb-24 flex-1`}>
 
         {/* Title Bar */}
         <div className="flex justify-between items-center border-b border-slate-300 dark:border-slate-700 pb-3 mb-6 mt-4">
@@ -196,15 +197,35 @@ export default function App() {
         </div>
 
         {/* Center Dashboard Area */}
-        <div className="flex flex-col items-center">
-          <HeroSection />
-          
-          <DailyStatus />
-          
-          <button className="text-blue-700 dark:text-blue-400 mt-8 mb-8 hover:underline font-medium text-sm md:text-base cursor-pointer">
-            View All Attendance
-          </button>
-        </div>
+        {settings.dashboardViewEnabled && settings.dashboardRole === "CPO" ? (
+          <CPODashboard />
+        ) : settings.dashboardViewEnabled && settings.dashboardRole !== "Standard" ? (
+          <div className="w-full max-w-7xl mx-auto px-4 text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm mb-12">
+            <span className="text-4xl">🏢</span>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mt-3">
+              {settings.dashboardRole === "Head Level" ? "Head Level Executive View" : "Department Manager View"}
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+              This dashboard view is currently under audit clearance. To preview fully functional HR analytics, regulatory compliance, exit insights, performance tracking, and branch readiness grids, open settings and set the role to <span className="font-semibold text-indigo-600 dark:text-indigo-400">Chief People Officer (CPO) View</span>.
+            </p>
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 active:scale-95 transition"
+            >
+              Open Settings & Select CPO
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <HeroSection />
+            
+            <DailyStatus />
+            
+            <button className="text-blue-700 dark:text-blue-400 mt-8 mb-8 hover:underline font-medium text-sm md:text-base cursor-pointer">
+              View All Attendance
+            </button>
+          </div>
+        )}
       </div>
       
       </div>

@@ -660,6 +660,45 @@ switch (roundedPhase) {
               )}
             </div>
 
+            {/* Custom Dashboard View Settings */}
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Dashboard View Override</span>
+                  <span className="text-[10px] text-slate-400">Toggle role-based analytics & widgets</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={localSettings.dashboardViewEnabled || false} 
+                    onChange={(e) => handleUpdateLocalSettings({ dashboardViewEnabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
+                </label>
+              </div>
+              {localSettings.dashboardViewEnabled && (
+                <div className="flex flex-col space-y-2.5 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Select Dashboard Role</span>
+                  <div className="relative">
+                    <select
+                      value={localSettings.dashboardRole || "Standard"}
+                      onChange={(e) => handleUpdateLocalSettings({ dashboardRole: e.target.value as any })}
+                      className="w-full text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none cursor-pointer font-medium"
+                    >
+                      <option value="Standard">👤 Standard Employee View</option>
+                      <option value="CPO">📊 Chief People Officer (CPO) View</option>
+                      <option value="Head Level">🏢 Head Level Executive View</option>
+                      <option value="Manager">📈 Department Manager View</option>
+                    </select>
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
+                    Selecting "CPO" will unlock real-time HR insights, metrics, workforce readiness matrices, red flags, and deep-dive analytics.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Show Location Widget</span>
