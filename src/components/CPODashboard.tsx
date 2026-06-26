@@ -17,6 +17,54 @@ import FlipCard from "./FlipCard";
 export default function CPODashboard() {
   const [activeFilter, setActiveFilter] = useState<"All" | "Red Flags" | "Trends" | "Deep Dive">("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Real-time Weekly Attendance & Department Efficiency states
+  const [realTimeAttendanceData, setRealTimeAttendanceData] = useState([
+    { day: "Mon", attendance: 95.8, efficiency: 88.2, support: 91.0, engineering: 87.5, sales: 84.2, ops: 89.1, finance: 90.5, hr: 86.8 },
+    { day: "Tue", attendance: 96.4, efficiency: 89.5, support: 92.5, engineering: 89.0, sales: 85.0, ops: 90.4, finance: 91.0, hr: 87.2 },
+    { day: "Wed", attendance: 95.1, efficiency: 87.8, support: 89.0, engineering: 88.2, sales: 83.5, ops: 88.0, finance: 89.5, hr: 85.5 },
+    { day: "Thu", attendance: 94.2, efficiency: 86.1, support: 86.5, engineering: 87.0, sales: 82.0, ops: 86.8, finance: 88.2, hr: 84.0 },
+    { day: "Fri", attendance: 93.5, efficiency: 85.0, support: 85.0, engineering: 85.5, sales: 81.2, ops: 85.5, finance: 87.0, hr: 83.2 },
+    { day: "Sat", attendance: 97.2, efficiency: 91.0, support: 94.2, engineering: 92.0, sales: 88.5, ops: 92.1, finance: 93.4, hr: 90.0 },
+    { day: "Sun", attendance: 98.5, efficiency: 93.4, support: 96.0, engineering: 94.5, sales: 90.0, ops: 94.0, finance: 95.2, hr: 92.1 }
+  ]);
+  const [isLiveUpdating, setIsLiveUpdating] = useState<boolean>(true);
+  const [activeVizMetric, setActiveVizMetric] = useState<"attendance" | "efficiency" | "all">("all");
+  const [focusedDepartment, setFocusedDepartment] = useState<string>("All");
+  const [chartType, setChartType] = useState<"area" | "line" | "bar">("area");
+  const [showLiveTable, setShowLiveTable] = useState<boolean>(false);
+  const [copiedSummary, setCopiedSummary] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isLiveUpdating) return;
+    const interval = setInterval(() => {
+      setRealTimeAttendanceData((prev) =>
+        prev.map((item) => {
+          const deltaAtt = (Math.random() - 0.5) * 1.4;
+          const deltaEff = (Math.random() - 0.5) * 1.6;
+          const deltaSupp = (Math.random() - 0.5) * 1.8;
+          const deltaEng = (Math.random() - 0.5) * 1.5;
+          const deltaSales = (Math.random() - 0.5) * 2.0;
+          const deltaOps = (Math.random() - 0.5) * 1.5;
+          const deltaFin = (Math.random() - 0.5) * 1.2;
+          const deltaHr = (Math.random() - 0.5) * 1.7;
+
+          return {
+            ...item,
+            attendance: Math.max(80, Math.min(100, parseFloat((item.attendance + deltaAtt).toFixed(1)))),
+            efficiency: Math.max(75, Math.min(100, parseFloat((item.efficiency + deltaEff).toFixed(1)))),
+            support: Math.max(70, Math.min(100, parseFloat((item.support + deltaSupp).toFixed(1)))),
+            engineering: Math.max(75, Math.min(100, parseFloat((item.engineering + deltaEng).toFixed(1)))),
+            sales: Math.max(70, Math.min(100, parseFloat((item.sales + deltaSales).toFixed(1)))),
+            ops: Math.max(75, Math.min(100, parseFloat((item.ops + deltaOps).toFixed(1)))),
+            finance: Math.max(80, Math.min(100, parseFloat((item.finance + deltaFin).toFixed(1)))),
+            hr: Math.max(70, Math.min(100, parseFloat((item.hr + deltaHr).toFixed(1)))),
+          };
+        })
+      );
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isLiveUpdating]);
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
   const [selectedDateRange, setSelectedDateRange] = useState("YTD");
@@ -1755,6 +1803,409 @@ export default function CPODashboard() {
           />
         </div>
       </div>
+
+      {/* Real-time Interactive Trends Visualization Workspace */}
+      {(activeFilter === "Trends" || activeFilter === "All") && (() => {
+        const avgAttendance = (realTimeAttendanceData.reduce((acc, curr) => acc + curr.attendance, 0) / realTimeAttendanceData.length).toFixed(1);
+        const avgEfficiency = (realTimeAttendanceData.reduce((acc, curr) => acc + curr.efficiency, 0) / realTimeAttendanceData.length).toFixed(1);
+        
+        let maxVal = 0;
+        let maxDay = "Mon";
+        realTimeAttendanceData.forEach((d) => {
+          if (d.attendance > maxVal) {
+            maxVal = d.attendance;
+            maxDay = d.day;
+          }
+        });
+
+        const showAttendance = activeVizMetric === "attendance" || activeVizMetric === "all";
+        const showEfficiency = activeVizMetric === "efficiency" || activeVizMetric === "all";
+
+        const copySummary = () => {
+          const text = `CPO EXECUTIVE BRIEFING: LIVE WEEKLY ATTENDANCE & EFFICIENCY METRICS
+Generated: ${new Date().toLocaleDateString()}
+Weekly Attendance Avg: ${avgAttendance}% (Peak: ${maxDay} at ${maxVal.toFixed(1)}%)
+Weekly Departmental Efficiency Avg: ${avgEfficiency}%
+
+Department Breakdown:
+- Support: ${realTimeAttendanceData[1].support}% (Avg Tue)
+- Engineering: ${realTimeAttendanceData[1].engineering}% (Avg Tue)
+- Sales: ${realTimeAttendanceData[1].sales}% (Avg Tue)
+- Operations: ${realTimeAttendanceData[1].ops}% (Avg Tue)
+- Finance: ${realTimeAttendanceData[1].finance}% (Avg Tue)
+- HR: ${realTimeAttendanceData[1].hr}% (Avg Tue)
+
+Source: Live Biometric Synchronization Engine.`;
+          navigator.clipboard.writeText(text);
+          setCopiedSummary(true);
+          setTimeout(() => setCopiedSummary(false), 2000);
+        };
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 md:p-6 shadow-sm transition-all duration-300"
+            id="cpo-realtime-visualization-panel"
+          >
+            {/* Component Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-50 dark:border-slate-900/40">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="relative flex h-2 w-2">
+                    {isLiveUpdating && (
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    )}
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${isLiveUpdating ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  </span>
+                  <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center space-x-1.5 font-sans">
+                    <Activity className="w-4 h-4 text-emerald-500" />
+                    <span>Real-Time Weekly Attendance & Department Efficiency Workspace</span>
+                  </h3>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 max-w-2xl font-medium">
+                  Dynamic biometric and task completion feeds synchronizing every 2.5 seconds. Filter metrics, focus departments, change layouts, and generate executive updates live.
+                </p>
+              </div>
+
+              {/* Engine controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLiveUpdating(!isLiveUpdating)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold tracking-wider transition-all flex items-center space-x-1.5 border shadow-sm cursor-pointer ${
+                    isLiveUpdating 
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200/60" 
+                      : "bg-slate-50 dark:bg-slate-950 text-slate-500 border-slate-200"
+                  }`}
+                >
+                  {isLiveUpdating ? (
+                    <>
+                      <Pause className="w-3 h-3 text-emerald-500" />
+                      <span>LIVE UPDATING</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3 h-3 text-slate-400" />
+                      <span>FEED PAUSED</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={copySummary}
+                  className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-extrabold flex items-center space-x-1.5 transition cursor-pointer"
+                >
+                  <Clipboard className="w-3 h-3" />
+                  <span>{copiedSummary ? "COPIED BRIEF!" : "COPY VIZ SUMMARY"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Core Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-b border-slate-50 dark:border-slate-900/40">
+              <div className="p-3 bg-slate-50/50 dark:bg-slate-950/30 rounded-xl border border-slate-100/60 dark:border-slate-850">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Attendance Rate</span>
+                <span className="text-lg font-black text-emerald-500 font-mono mt-0.5 block">{avgAttendance}%</span>
+                <span className="text-[9px] text-slate-400 block mt-0.5">7-Day Real-Time Avg</span>
+              </div>
+              <div className="p-3 bg-slate-50/50 dark:bg-slate-950/30 rounded-xl border border-slate-100/60 dark:border-slate-850">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Efficiency Index</span>
+                <span className="text-lg font-black text-indigo-500 font-mono mt-0.5 block">{avgEfficiency}%</span>
+                <span className="text-[9px] text-slate-400 block mt-0.5">Task Achievement Level</span>
+              </div>
+              <div className="p-3 bg-slate-50/50 dark:bg-slate-950/30 rounded-xl border border-slate-100/60 dark:border-slate-850">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Peak Attendance Day</span>
+                <span className="text-lg font-black text-slate-700 dark:text-slate-200 font-mono mt-0.5 block">{maxDay}</span>
+                <span className="text-[9px] text-emerald-500 font-bold block mt-0.5">{maxVal.toFixed(1)}% Active Rate</span>
+              </div>
+              <div className="p-3 bg-slate-50/50 dark:bg-slate-950/30 rounded-xl border border-slate-100/60 dark:border-slate-850">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Active Data Feeds</span>
+                <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5 block">6 Depts</span>
+                <span className="text-[9px] text-slate-400 block mt-0.5">Biometric Pulse Active</span>
+              </div>
+            </div>
+
+            {/* Controls + Visualization Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5">
+              
+              {/* Left Column: Visual Selectors */}
+              <div className="lg:col-span-4 space-y-4">
+                
+                {/* Metric Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Metric Stream focus</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {[
+                      { id: "all", label: "📊 Combined" },
+                      { id: "attendance", label: "🟢 Attendance" },
+                      { id: "efficiency", label: "⚡ Efficiency" }
+                    ].map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setActiveVizMetric(m.id as any)}
+                        className={`py-1.5 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer ${
+                          activeVizMetric === m.id
+                            ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-950 text-slate-500 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Chart Type Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Layout Design</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {[
+                      { id: "area", label: "📈 Area Plot" },
+                      { id: "line", label: "📉 Line Plot" },
+                      { id: "bar", label: "📊 Bar Grid" }
+                    ].map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setChartType(c.id as any)}
+                        className={`py-1.5 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer ${
+                          chartType === c.id
+                            ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-950 text-slate-500 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Department Focus Selectors */}
+                <div className="space-y-1.5">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Focused Department View</span>
+                  <div className="grid grid-cols-2 gap-1">
+                    {[
+                      { id: "All", label: "All Departments" },
+                      { id: "Support", label: "Operations & Support" },
+                      { id: "Engineering", label: "Engineering & Product" },
+                      { id: "Sales", label: "Sales & Revenue" },
+                      { id: "Finance", label: "Finance & Legal" },
+                      { id: "HR", label: "Human Resources" }
+                    ].map((dept) => (
+                      <button
+                        key={dept.id}
+                        type="button"
+                        onClick={() => setFocusedDepartment(dept.id)}
+                        className={`py-2 px-1 text-[9px] font-bold rounded-lg border transition-all text-center leading-tight cursor-pointer ${
+                          focusedDepartment === dept.id
+                            ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-950 text-slate-500 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                        }`}
+                      >
+                        {dept.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Logs Indicator */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-800/40 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Live feed log table</span>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold block">View details of plotted data points</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLiveTable(!showLiveTable)}
+                    className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                  >
+                    {showLiveTable ? "Hide Log" : "Show Log"}
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Right Column: Recharts Visualization Stage */}
+              <div className="lg:col-span-8 flex flex-col justify-between min-h-[300px]">
+                
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    {(() => {
+                      const plotData = realTimeAttendanceData.map((d) => {
+                        let effVal = d.efficiency;
+                        if (focusedDepartment === "Support") effVal = d.support;
+                        else if (focusedDepartment === "Engineering") effVal = d.engineering;
+                        else if (focusedDepartment === "Sales") effVal = d.sales;
+                        else if (focusedDepartment === "Finance") effVal = d.finance;
+                        else if (focusedDepartment === "HR") effVal = d.hr;
+
+                        return {
+                          day: d.day,
+                          "Attendance Rate": d.attendance,
+                          "Efficiency Index": effVal,
+                          "Support": d.support,
+                          "Engineering": d.engineering,
+                          "Sales": d.sales,
+                          "Finance": d.finance,
+                          "HR": d.hr,
+                        };
+                      });
+
+                      const CustomTooltip = ({ active, payload, label }: any) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-slate-900/95 dark:bg-slate-950/95 text-white border border-slate-800 p-2.5 rounded-xl shadow-xl space-y-1.5 backdrop-blur-md">
+                              <p className="text-[10px] font-extrabold text-indigo-400 tracking-wider uppercase font-mono">{label} - Live Sync</p>
+                              <div className="space-y-1">
+                                {payload.map((entry: any, i: number) => (
+                                  <div key={i} className="flex items-center justify-between space-x-6 text-[10px]">
+                                    <div className="flex items-center space-x-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.stroke || entry.fill }} />
+                                      <span className="font-semibold text-slate-300">{entry.name}:</span>
+                                    </div>
+                                    <span className="font-extrabold font-mono text-white">{entry.value}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      };
+
+                      if (chartType === "area") {
+                        return (
+                          <AreaChart data={plotData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id="liveAttColor" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="liveEffColor" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:stroke-slate-800" />
+                            <XAxis dataKey="day" tick={{ fontSize: 9 }} stroke="#94a3b8" />
+                            <YAxis domain={[70, 100]} tick={{ fontSize: 9 }} stroke="#94a3b8" />
+                            <Tooltip content={<CustomTooltip />} />
+                            {showAttendance && (
+                              <Area type="monotone" name="Attendance Rate" dataKey="Attendance Rate" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#liveAttColor)" />
+                            )}
+                            {showEfficiency && (
+                              <Area type="monotone" name={`${focusedDepartment === 'All' ? 'Average' : focusedDepartment} Efficiency`} dataKey="Efficiency Index" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#liveEffColor)" />
+                            )}
+                          </AreaChart>
+                        );
+                      } else if (chartType === "bar") {
+                        return (
+                          <BarChart data={plotData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:stroke-slate-800" />
+                            <XAxis dataKey="day" tick={{ fontSize: 9 }} stroke="#94a3b8" />
+                            <YAxis domain={[70, 100]} tick={{ fontSize: 9 }} stroke="#94a3b8" />
+                            <Tooltip content={<CustomTooltip />} />
+                            {showAttendance && (
+                              <Bar name="Attendance Rate" dataKey="Attendance Rate" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                            )}
+                            {showEfficiency && (
+                              <Bar name={`${focusedDepartment === 'All' ? 'Average' : focusedDepartment} Efficiency`} dataKey="Efficiency Index" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                            )}
+                          </BarChart>
+                        );
+                      } else {
+                        return (
+                          <LineChart data={plotData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" className="dark:stroke-slate-800" />
+                            <XAxis dataKey="day" tick={{ fontSize: 9 }} stroke="#94a3b8" />
+                            <YAxis domain={[70, 100]} tick={{ fontSize: 9 }} stroke="#94a3b8" />
+                            <Tooltip content={<CustomTooltip />} />
+                            {showAttendance && (
+                              <Line type="monotone" name="Attendance Rate" dataKey="Attendance Rate" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                            )}
+                            {showEfficiency && (
+                              <Line type="monotone" name={`${focusedDepartment === 'All' ? 'Average' : focusedDepartment} Efficiency`} dataKey="Efficiency Index" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                            )}
+                          </LineChart>
+                        );
+                      }
+                    })()}
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Legend details */}
+                <div className="flex flex-wrap items-center justify-center gap-6 mt-2 pt-3 border-t border-slate-50 dark:border-slate-900/40 text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-lg shrink-0" />
+                    <span>🟢 Weekly Attendance Rate (%)</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="w-2.5 h-2.5 bg-indigo-500 rounded-lg shrink-0" />
+                    <span>⚡ Department Efficiency Index (%)</span>
+                  </div>
+                  {focusedDepartment !== "All" && (
+                    <div className="flex items-center space-x-1">
+                      <span className="text-[9px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400">
+                        Focused on: {focusedDepartment}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Live Table Drawer */}
+            <AnimatePresence>
+              {showLiveTable && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden mt-5 border-t border-slate-100 dark:border-slate-800/60 pt-4"
+                >
+                  <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/20 dark:bg-slate-950/25">
+                    <table className="w-full text-left border-collapse text-[10px]">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-950 font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60">
+                          <th className="p-2.5 pl-4">Day</th>
+                          <th className="p-2.5">Attendance</th>
+                          <th className="p-2.5">Avg Efficiency</th>
+                          <th className="p-2.5">Support</th>
+                          <th className="p-2.5">Engineering</th>
+                          <th className="p-2.5">Sales</th>
+                          <th className="p-2.5">Ops & Support</th>
+                          <th className="p-2.5 pr-4">Finance</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/40 font-mono text-slate-700 dark:text-slate-300">
+                        {realTimeAttendanceData.map((d, index) => (
+                          <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/30">
+                            <td className="p-2.5 pl-4 font-sans font-bold text-slate-800 dark:text-slate-200">{d.day}</td>
+                            <td className="p-2.5 text-emerald-600 dark:text-emerald-400 font-extrabold">{d.attendance}%</td>
+                            <td className="p-2.5 text-indigo-600 dark:text-indigo-400 font-extrabold">{d.efficiency}%</td>
+                            <td className="p-2.5">{d.support}%</td>
+                            <td className="p-2.5">{d.engineering}%</td>
+                            <td className="p-2.5">{d.sales}%</td>
+                            <td className="p-2.5">{d.ops}%</td>
+                            <td className="p-2.5 pr-4">{d.finance}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </motion.div>
+        );
+      })()}
 
       {/* 4. Active Main Content Modules Grid */}
       <div className="grid grid-cols-12 gap-6 auto-rows-max">

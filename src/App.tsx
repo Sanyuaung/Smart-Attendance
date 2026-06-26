@@ -152,16 +152,18 @@ export default function App() {
       <div className={`${settings.dashboardViewEnabled && settings.dashboardRole === "CPO" ? "w-full max-w-none px-4 md:px-8 xl:px-12" : "max-w-[1000px] mx-auto w-full px-4 sm:px-6"} py-6 pb-24 flex-1`}>
 
         {/* Title Bar */}
-        <div className="flex justify-between items-center border-b border-slate-300 dark:border-slate-700 pb-3 mb-6 mt-4">
-          <h1 className="text-xl font-bold text-[#0c3176] dark:text-blue-400">Attendance</h1>
-          <button 
-            onClick={() => useStore.getState().triggerRefresh()}
-            className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
-            title="Refresh Data"
-          >
-            <RefreshCw className="w-5 h-5"/>
-          </button>
-        </div>
+        {!(settings.dashboardViewEnabled && settings.dashboardRole === "CPO") && (
+          <div className="flex justify-between items-center border-b border-slate-300 dark:border-slate-700 pb-3 mb-6 mt-4">
+            <h1 className="text-xl font-bold text-[#0c3176] dark:text-blue-400">Attendance</h1>
+            <button 
+              onClick={() => useStore.getState().triggerRefresh()}
+              className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+              title="Refresh Data"
+            >
+              <RefreshCw className="w-5 h-5"/>
+            </button>
+          </div>
+        )}
 
         {/* Shift Banner */}
         <div className="text-white rounded-xl p-4 flex items-center justify-between mb-10 shadow-md border border-[#061e52] dark:border-slate-800 overflow-hidden relative min-h-[56px]">
