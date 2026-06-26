@@ -74,6 +74,62 @@ export default function CPODashboard() {
   const [remediationSubtasks, setRemediationSubtasks] = useState<Record<string, Record<string, boolean>>>({});
   const [resolvedAlertIds, setResolvedAlertIds] = useState<Record<string, boolean>>({});
 
+  // Legal, Compliance, & ER Risk States
+  const [payEquityAdjustmentPool, setPayEquityAdjustmentPool] = useState<number>(15000000); // MMK Monthly Budget Allocation
+  const [erCases, setErCases] = useState<Array<{
+    id: string;
+    category: string;
+    severity: "Low" | "Medium" | "High" | "Critical";
+    daysActive: number;
+    status: "Under Review" | "Action Pending" | "Resolved";
+    filingDate: string;
+    summary: string;
+    timeline: string[];
+  }>>([
+    {
+      id: "ER-2026-042",
+      category: "Inappropriate Communication",
+      severity: "Medium",
+      daysActive: 12,
+      status: "Under Review",
+      filingDate: "2026-06-14",
+      summary: "Anonymous complaint regarding peer communication tone and branch work atmosphere in Taunggyi.",
+      timeline: ["Case Registered", "Assigned to Regional ER Representative"]
+    },
+    {
+      id: "ER-2026-059",
+      category: "Shift Scheduling Discrepancy",
+      severity: "High",
+      daysActive: 8,
+      status: "Action Pending",
+      filingDate: "2026-06-18",
+      summary: "Anonymous notice of unfair shift allocation and weekend rotation policy disparities in Mandalay.",
+      timeline: ["Case Registered", "Schedules audited", "Branch manager interview scheduled"]
+    },
+    {
+      id: "ER-2026-071",
+      category: "Interpersonal Operational Friction",
+      severity: "Low",
+      daysActive: 24,
+      status: "Resolved",
+      filingDate: "2026-06-02",
+      summary: "Inter-departmental credit assignment dispute during regional audit cycle.",
+      timeline: ["Case Registered", "Joint reconciliation session completed", "Written resolution signed"]
+    }
+  ]);
+  const [newCaseCategory, setNewCaseCategory] = useState<string>("Inappropriate Communication");
+  const [newCaseSeverity, setNewCaseSeverity] = useState<"Low" | "Medium" | "High" | "Critical">("Medium");
+  const [newCaseSummary, setNewCaseSummary] = useState<string>("");
+  const [showNewCaseModal, setShowNewCaseModal] = useState<boolean>(false);
+  const [selectedErCaseId, setSelectedErCaseId] = useState<string | null>(null);
+
+  const [completedFilings, setCompletedFilings] = useState<Record<string, boolean>>({
+    "Union Labor Standard Disclosure": false,
+    "Annual Workplace Safety Certification": true,
+    "Anti-Harassment Training Audit": false,
+    "Equal Pay Act Declaration": false,
+  });
+
   // Geographic Tour effect
   useEffect(() => {
     if (!isTourPlaying) return;
@@ -167,6 +223,28 @@ export default function CPODashboard() {
 
     return list;
   }, [heatmapBranchFilter, heatmapDeptFilter, heatmapEmploymentFilter]);
+
+  // Dynamic Pay Equity Demographics Data
+  const payEquityData = useMemo(() => {
+    const baseData = [
+      { dept: "Exec", Male: 4500000, Female: 3900000, factor: 0.04 },
+      { dept: "Eng", Male: 2800000, Female: 2400000, factor: 0.026 },
+      { dept: "Sales", Male: 2100000, Female: 1850000, factor: 0.016 },
+      { dept: "HR", Male: 1750000, Female: 1600000, factor: 0.01 },
+      { dept: "Ops", Male: 1500000, Female: 1300000, factor: 0.013 },
+    ];
+    
+    return baseData.map(d => {
+      // dynamically add from adjustment pool based on factor, capped at Male salary
+      const adjustedFemale = Math.min(d.Male, d.Female + Math.round(payEquityAdjustmentPool * d.factor * 10));
+      const gapPercent = d.Male > 0 ? ((d.Male - adjustedFemale) / d.Male) * 100 : 0;
+      return {
+        ...d,
+        Female: adjustedFemale,
+        gap: parseFloat(gapPercent.toFixed(1))
+      };
+    });
+  }, [payEquityAdjustmentPool]);
 
   // What-If Scenario Simulator logic
   const simulatedMetrics = useMemo(() => {
@@ -311,6 +389,71 @@ export default function CPODashboard() {
       setHiringSimulationLog(prev => [newLog, ...prev]);
       setShowPlannerFeedback(true);
       setTimeout(() => setShowPlannerFeedback(false), 3000);
+    }
+  };
+
+  const handleResolveCase = (caseId: string, resolutionSummary: string) => {
+    setErCases(prev => prev.map(c => {
+      if (c.id === caseId) {
+        return {
+          ...c,
+          status: "Resolved" as const,
+          timeline: [...c.timeline, resolutionSummary]
+        };
+      }
+      return c;
+    }));
+    
+    const taskName = `⚖️ Resolve ER Case #${caseId} (Resolution pipeline certified)`;
+    if (!customTasks.includes(taskName)) {
+      setCustomTasks(prev => [...prev, taskName]);
+    }
+  };
+
+  const handlePushTimeline = (caseId: string, auditText: string) => {
+    setErCases(prev => prev.map(c => {
+      if (c.id === caseId) {
+        return {
+          ...c,
+          timeline: [...c.timeline, auditText]
+        };
+      }
+      return c;
+    }));
+  };
+
+  const handleTriggerFileCompliance = (filingName: string) => {
+    setCompletedFilings(prev => ({ ...prev, [filingName]: true }));
+    
+    const taskName = `📜 Labor Law: File & Certify "${filingName}" with regulatory board`;
+    if (!customTasks.includes(taskName)) {
+      setCustomTasks(prev => [...prev, taskName]);
+    }
+  };
+
+  const handleCreateNewCase = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCaseSummary.trim()) return;
+
+    const newId = `ER-2026-0${Math.floor(10 + Math.random() * 90)}`;
+    const newCase = {
+      id: newId,
+      category: newCaseCategory,
+      severity: newCaseSeverity,
+      daysActive: 1,
+      status: "Under Review" as const,
+      filingDate: new Date().toISOString().split('T')[0],
+      summary: newCaseSummary,
+      timeline: ["Case Registered", "System auto-routing triggered"]
+    };
+
+    setErCases(prev => [newCase, ...prev]);
+    setNewCaseSummary("");
+    setShowNewCaseModal(false);
+
+    const taskName = `🚨 Investigate filed ER Case #${newId} (${newCaseCategory})`;
+    if (!customTasks.includes(taskName)) {
+      setCustomTasks(prev => [...prev, taskName]);
     }
   };
 
@@ -1389,15 +1532,15 @@ export default function CPODashboard() {
         layout
         className="bg-gradient-to-r from-indigo-50/70 via-white to-slate-50/50 dark:from-indigo-950/20 dark:via-slate-900/60 dark:to-slate-950/20 rounded-2xl border border-indigo-100/80 dark:border-indigo-950/60 p-4 md:p-5 mb-8 shadow-sm"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-lg">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center space-x-3">
+            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0 mt-0.5 sm:mt-0">
               <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+              <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex flex-wrap items-center gap-1.5">
                 <span>Executive Board Briefing Generator</span>
-                <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded font-bold font-mono">
+                <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded font-bold font-mono whitespace-nowrap">
                   LIVE COMPILATION
                 </span>
               </h3>
@@ -1407,16 +1550,16 @@ export default function CPODashboard() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between lg:justify-end gap-2 pt-3 lg:pt-0 border-t border-indigo-100/40 lg:border-t-0">
             <button
               onClick={() => setIsBriefingCollapsed(!isBriefingCollapsed)}
-              className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-2.5 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-lg transition"
+              className="text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-lg transition"
             >
               {isBriefingCollapsed ? "Expand Briefing" : "Collapse"}
             </button>
             <button
               onClick={copyBriefingToClipboard}
-              className={`text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition-all flex items-center space-x-1.5 shadow-sm ${
+              className={`text-[10px] font-extrabold px-3 py-2 rounded-lg transition-all flex items-center space-x-1.5 shadow-sm ${
                 copiedBriefing 
                   ? "bg-emerald-500 text-white" 
                   : "bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -2345,6 +2488,274 @@ export default function CPODashboard() {
         </motion.div>
       )}
 
+      {/* 4.5 Legal, Compliance, & ER (Employee Relations) Risk Command Center */}
+      {activeFilter !== "Red Flags" && (
+        <motion.div
+          layout
+          className="mt-10 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-sm"
+          id="cpo-legal-compliance-er-center"
+        >
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+            <div>
+              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center space-x-1.5">
+                <Scale className="w-4 h-4 text-rose-500" />
+                <span>Legal, Compliance & Employee Relations (ER) Risk Command Center</span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Protect organizational brand, mitigate compliance liabilities, monitor pay parity ratios, and track anonymous resolution pipelines.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => setShowNewCaseModal(true)}
+                className="text-xs bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-3 py-1.5 rounded-lg flex items-center space-x-1.5 shadow-sm cursor-pointer transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>File anonymous report</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Box: Pay Equity Gap Tracker (Demographics & Salaries) */}
+            <div className="lg:col-span-4 space-y-5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                  ⚖️ Pay Equity Gap Tracker
+                </span>
+                <span className="text-[10px] bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-extrabold px-1.5 py-0.5 rounded uppercase">
+                  Demographics active
+                </span>
+              </div>
+
+              {/* Parity Adjustment Slider */}
+              <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 p-4 rounded-xl space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Equity Parity Fund</label>
+                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                    {payEquityAdjustmentPool.toLocaleString()} MMK/mo
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="45000000"
+                  step="1000000"
+                  value={payEquityAdjustmentPool}
+                  onChange={(e) => setPayEquityAdjustmentPool(Number(e.target.value))}
+                  className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                />
+                <p className="text-[9px] text-slate-400 leading-relaxed">
+                  Drag slider to allocate capital adjustment pool. Real-time parity alignment will occur dynamically across all departmental pay buckets.
+                </p>
+              </div>
+
+              {/* Recharts Bar Chart */}
+              <div className="h-52 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={payEquityData}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="dept" 
+                      tick={{ fontSize: 9, fontWeight: 700 }} 
+                      stroke="#94a3b8" 
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 8, fontWeight: 500 }} 
+                      stroke="#94a3b8" 
+                      tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: "#1e293b", borderRadius: "12px", border: "none", color: "#fff" }}
+                      itemStyle={{ fontSize: "10px" }}
+                      labelStyle={{ fontSize: "11px", fontWeight: "bold" }}
+                      formatter={(value: any) => [`${Number(value).toLocaleString()} MMK`, ""]}
+                    />
+                    <Bar dataKey="Male" fill="#4f46e5" radius={[4, 4, 0, 0]} name="Male Avg" />
+                    <Bar dataKey="Female" fill="#ec4899" radius={[4, 4, 0, 0]} name="Female Avg" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Parity Status summary info */}
+              <div className="flex justify-between items-center text-[10px] p-2 bg-rose-500/5 border border-rose-500/10 rounded-lg">
+                <span className="font-semibold text-slate-500">Global Average Gap:</span>
+                <span className={`font-mono font-black ${
+                  payEquityAdjustmentPool >= 35000000 ? "text-emerald-500" : "text-rose-500"
+                }`}>
+                  {payEquityAdjustmentPool >= 42000000 ? "0.2% (Perfect Parity)" : `${(8.4 - (payEquityAdjustmentPool / 5000000)).toFixed(1)}% Disparity`}
+                </span>
+              </div>
+            </div>
+
+            {/* Middle Box: Harassment & Dispute Cases */}
+            <div className="lg:col-span-5 space-y-4 border-t lg:border-t-0 lg:border-l lg:border-r border-slate-100 dark:border-slate-800/80 pt-5 lg:pt-0 lg:px-6">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                  🚨 Anonymous Harassment & ER Disputes
+                </span>
+                <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-400 font-extrabold px-1.5 py-0.5 rounded uppercase">
+                  {erCases.filter(c => c.status !== "Resolved").length} Unresolved
+                </span>
+              </div>
+
+              {/* Dispute Cases Listing */}
+              <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1">
+                {erCases.map((c) => {
+                  const isSelected = selectedErCaseId === c.id;
+                  return (
+                    <div 
+                      key={c.id} 
+                      className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                        isSelected 
+                          ? "bg-slate-50 dark:bg-slate-950/60 border-indigo-500/50 shadow-sm" 
+                          : "bg-white dark:bg-slate-950/20 border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50"
+                      }`}
+                      onClick={() => setSelectedErCaseId(isSelected ? null : c.id)}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center space-x-1.5">
+                          <span className="font-mono text-[10px] font-extrabold text-slate-800 dark:text-slate-200">#{c.id}</span>
+                          <span className={`text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded ${
+                            c.severity === "Critical" || c.severity === "High"
+                              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                              : c.severity === "Medium"
+                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                              : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          }`}>
+                            {c.severity} Severity
+                          </span>
+                        </div>
+                        <span className={`text-[8.5px] font-extrabold uppercase px-1.5 py-0.2 rounded-md ${
+                          c.status === "Resolved"
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : c.status === "Action Pending"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            : "bg-indigo-500/10 text-indigo-500"
+                        }`}>
+                          {c.status}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 mb-1">{c.category}</p>
+                      <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{c.summary}</p>
+                      <span className="text-[9px] text-slate-400/80 block mt-2 font-mono">Date filed: {c.filingDate} • Active: {c.daysActive} days</span>
+
+                      {/* Detail Drawer (Expanded mode) */}
+                      <AnimatePresence>
+                        {isSelected && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 space-y-3 overflow-hidden text-[10px]"
+                          >
+                            <div>
+                              <span className="font-bold text-slate-400 uppercase tracking-widest text-[8px] block mb-1">Case Investigation Milestone Pipeline:</span>
+                              <div className="flex flex-col space-y-1 pl-1.5 border-l-2 border-indigo-500/30">
+                                {c.timeline.map((step, idx) => (
+                                  <div key={idx} className="flex items-center space-x-1.5 text-slate-600 dark:text-slate-300">
+                                    <span className="text-indigo-500">●</span>
+                                    <span>{step}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {c.status !== "Resolved" ? (
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleResolveCase(c.id, "Facilitated mediation completed and resolution pact signed.");
+                                  }}
+                                  className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded cursor-pointer transition text-[9px]"
+                                >
+                                  ✔ Facilitate Resolution
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePushTimeline(c.id, "External counsel audit initiated");
+                                  }}
+                                  className="px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded cursor-pointer transition text-[9px]"
+                                >
+                                  ➕ Push Audit Step
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold rounded text-center">
+                                🎉 Case officially resolved, documented, and closed.
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Box: Labor Law Compliance Clock */}
+            <div className="lg:col-span-3 space-y-4">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                ⏳ Labor Law Compliance Clock
+              </span>
+
+              <div className="space-y-3">
+                {/* Clock Deadlines */}
+                {[
+                  { name: "Union Labor Standard Disclosure", days: 11, desc: "Global union transparency reporting & workforce split filing." },
+                  { name: "Annual Workplace Safety Certification", days: 0, desc: "Mandatory regional branch physical safety audits & logs." },
+                  { name: "Anti-Harassment Training Audit", days: 34, desc: "98% certification tracking audit for Taunggyi & Bago branches." },
+                  { name: "Equal Pay Act Declaration", days: 57, desc: "Audit and disclosure files submission to standard federal board." },
+                ].map((item) => {
+                  const isFiled = completedFilings[item.name];
+                  return (
+                    <div 
+                      key={item.name} 
+                      className="p-3 bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 rounded-xl space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-[10.5px] text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{item.name}</span>
+                        {isFiled ? (
+                          <span className="text-[8.5px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded flex items-center space-x-1">
+                            <Check className="w-2.5 h-2.5" />
+                            <span>FILED & CERTIFIED</span>
+                          </span>
+                        ) : (
+                          <span className="text-[8.5px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded font-mono">
+                            {item.days} DAYS LEFT
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[9.5px] text-slate-400">{item.desc}</p>
+                      
+                      {!isFiled && (
+                        <button
+                          type="button"
+                          onClick={() => handleTriggerFileCompliance(item.name)}
+                          className="w-full mt-1.5 py-1 px-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[9px] rounded-lg cursor-pointer transition flex items-center justify-center space-x-1"
+                        >
+                          <FileText className="w-2.5 h-2.5" />
+                          <span>Complete & Upload Certification Filing</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* 5. Workforce Branch Readiness Matrix Grid Panel */}
       {activeFilter !== "Red Flags" && (
         <div className="mt-10 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm" id="cpo-readiness-panel">
@@ -2556,9 +2967,9 @@ export default function CPODashboard() {
         };
 
         return (
-          <div className="mt-10 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300" id="cpo-heatmap-panel">
-            <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-6 pb-5 border-b border-slate-50 dark:border-slate-900/60">
-              <div>
+          <div className="mt-10 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300" id="cpo-heatmap-panel">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-6 pb-5 border-b border-slate-50 dark:border-slate-900/60">
+              <div className="w-full">
                 <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center space-x-1.5">
                   <Activity className="w-4 h-4 text-indigo-500" />
                   <span>Weekly Attendance Intensity Heatmap</span>
@@ -2576,213 +2987,202 @@ export default function CPODashboard() {
                   {totalAnomaliesCount > 0 ? (
                     <span className="text-[10px] bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 dark:border-amber-500/10 px-2.5 py-1 rounded-md font-semibold text-amber-700 dark:text-amber-400 flex items-center space-x-1.5">
                       <AlertTriangle className="w-3 h-3 text-amber-500" />
-                      <span>{totalAnomaliesCount} Anomaly Flags</span>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">({highAnomaliesCount} peak{highAnomaliesCount !== 1 ? 's' : ''}, {lowAnomaliesCount} slump{lowAnomaliesCount !== 1 ? 's' : ''})</span>
+                      <span>{totalAnomaliesCount} Anomalies</span>
+                      <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">({highAnomaliesCount} peaks, {lowAnomaliesCount} slumps)</span>
                     </span>
                   ) : (
                     <span className="text-[10px] bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 dark:border-emerald-500/10 px-2.5 py-1 rounded-md font-semibold text-emerald-700 dark:text-emerald-400 flex items-center space-x-1">
                       <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                      <span>Stable Attendance (No Anomalies)</span>
+                      <span>Stable Attendance</span>
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Heatmap Filters Controller Bar */}
-              <div className="flex flex-col gap-4 bg-slate-50/50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/40 w-full xl:w-auto">
-                {/* Row 1: Attendance Demographics */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[100px]">Segment:</span>
-                  
-                  {/* Branch Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Branch</label>
-                    <select 
-                      value={heatmapBranchFilter}
-                      onChange={(e) => {
-                        setHeatmapBranchFilter(e.target.value);
-                        setIsTourPlaying(false);
-                      }}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="All Branches">All Branches</option>
-                      <option value="Yangon HQ">Yangon HQ</option>
-                      <option value="Mandalay Main">Mandalay Main</option>
-                      <option value="Naypyidaw Office">Naypyidaw Office</option>
-                      <option value="Taunggyi Agency">Taunggyi Agency</option>
-                      <option value="Bago Region">Bago Region</option>
-                      <option value="International HQ">International HQ</option>
-                    </select>
-                  </div>
+              <div className="flex flex-col gap-5 bg-slate-50/50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800/40 w-full lg:w-auto shrink-0">
+                
+                {/* Section 1: Demographics Group */}
+                <div className="space-y-2">
+                  <span className="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest block">
+                    👥 Demographic Segments
+                  </span>
+                  <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3">
+                    {/* Branch Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Branch</label>
+                      <select 
+                        value={heatmapBranchFilter}
+                        onChange={(e) => {
+                          setHeatmapBranchFilter(e.target.value);
+                          setIsTourPlaying(false);
+                        }}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="All Branches">All Branches</option>
+                        <option value="Yangon HQ">Yangon HQ</option>
+                        <option value="Mandalay Main">Mandalay Main</option>
+                        <option value="Naypyidaw Office">Naypyidaw Office</option>
+                        <option value="Taunggyi Agency">Taunggyi Agency</option>
+                        <option value="Bago Region">Bago Region</option>
+                        <option value="International HQ">International HQ</option>
+                      </select>
+                    </div>
 
-                  {/* Department Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Department</label>
-                    <select 
-                      value={heatmapDeptFilter}
-                      onChange={(e) => {
-                        setHeatmapDeptFilter(e.target.value);
-                        setIsTourPlaying(false);
-                      }}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="All Departments">All Departments</option>
-                      <option value="Executive Management">Executive Management</option>
-                      <option value="Engineering & Product">Engineering & Product</option>
-                      <option value="Sales & Revenue">Sales & Revenue</option>
-                      <option value="Human Resources">Human Resources</option>
-                      <option value="Finance & Legal">Finance & Legal</option>
-                      <option value="Operations & Support">Operations & Support</option>
-                    </select>
-                  </div>
+                    {/* Department Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Department</label>
+                      <select 
+                        value={heatmapDeptFilter}
+                        onChange={(e) => {
+                          setHeatmapDeptFilter(e.target.value);
+                          setIsTourPlaying(false);
+                        }}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="All Departments">All Departments</option>
+                        <option value="Executive Management">Executive Management</option>
+                        <option value="Engineering & Product">Engineering & Product</option>
+                        <option value="Sales & Revenue">Sales & Revenue</option>
+                        <option value="Human Resources">Human Resources</option>
+                        <option value="Finance & Legal">Finance & Legal</option>
+                        <option value="Operations & Support">Operations & Support</option>
+                      </select>
+                    </div>
 
-                  {/* Employment Type Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Staff Type</label>
-                    <select 
-                      value={heatmapEmploymentFilter}
-                      onChange={(e) => {
-                        setHeatmapEmploymentFilter(e.target.value);
-                        setIsTourPlaying(false);
-                      }}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="All Employment Types">All Employment Types</option>
-                      <option value="Full-Time (FTE)">Full-Time (FTE)</option>
-                      <option value="Part-Time">Part-Time</option>
-                      <option value="Contractors (C2C)">Contractors (C2C)</option>
-                      <option value="Temporary / Seasonal">Temporary / Seasonal</option>
-                      <option value="Interns">Interns</option>
-                    </select>
-                  </div>
+                    {/* Employment Type Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Staff Type</label>
+                      <select 
+                        value={heatmapEmploymentFilter}
+                        onChange={(e) => {
+                          setHeatmapEmploymentFilter(e.target.value);
+                          setIsTourPlaying(false);
+                        }}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="All Employment Types">All Employment Types</option>
+                        <option value="Full-Time (FTE)">Full-Time (FTE)</option>
+                        <option value="Part-Time">Part-Time</option>
+                        <option value="Contractors (C2C)">Contractors (C2C)</option>
+                        <option value="Temporary / Seasonal">Temporary / Seasonal</option>
+                        <option value="Interns">Interns</option>
+                      </select>
+                    </div>
 
-                  {/* Calendar Period Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Calendar Period</label>
-                    <select 
-                      value={heatmapPeriodFilter}
-                      onChange={(e) => {
-                        setHeatmapPeriodFilter(e.target.value);
-                        setIsTourPlaying(false);
-                      }}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="Today">Today</option>
-                      <option value="This Week">This Week</option>
-                      <option value="This Month">This Month</option>
-                      <option value="Last Month">Last Month</option>
-                      <option value="Q1 2026">Q1 2026</option>
-                      <option value="Q2 2026">Q2 2026</option>
-                      <option value="YTD">YTD</option>
-                      <option value="Custom Range...">Custom Range</option>
-                    </select>
+                    {/* Calendar Period Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Calendar Period</label>
+                      <select 
+                        value={heatmapPeriodFilter}
+                        onChange={(e) => {
+                          setHeatmapPeriodFilter(e.target.value);
+                          setIsTourPlaying(false);
+                        }}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="Today">Today</option>
+                        <option value="This Week">This Week</option>
+                        <option value="This Month">This Month</option>
+                        <option value="Last Month">Last Month</option>
+                        <option value="Q1 2026">Q1 2026</option>
+                        <option value="Q2 2026">Q2 2026</option>
+                        <option value="YTD">YTD</option>
+                        <option value="Custom Range...">Custom Range</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                {/* Row 2: Visual Filters & Themes */}
-                <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-slate-200/60 dark:border-slate-800/60">
-                  <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[100px]">Visualization:</span>
+                {/* Section 2: Visual Filters & Themes */}
+                <div className="space-y-2 pt-3.5 border-t border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest block">
+                    🎨 Visual Focus & Themes
+                  </span>
+                  <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 items-end">
+                    {/* Day Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Day Filter</label>
+                      <select 
+                        value={heatmapDayFilter}
+                        onChange={(e) => setHeatmapDayFilter(e.target.value)}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="All">All Days</option>
+                        <option value="Mon">Monday</option>
+                        <option value="Tue">Tuesday</option>
+                        <option value="Wed">Wednesday</option>
+                        <option value="Thu">Thursday</option>
+                        <option value="Fri">Friday</option>
+                      </select>
+                    </div>
 
-                  {/* Day Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Day Filter</label>
-                    <select 
-                      value={heatmapDayFilter}
-                      onChange={(e) => setHeatmapDayFilter(e.target.value)}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="All">All Days</option>
-                      <option value="Mon">Monday</option>
-                      <option value="Tue">Tuesday</option>
-                      <option value="Wed">Wednesday</option>
-                      <option value="Thu">Thursday</option>
-                      <option value="Fri">Friday</option>
-                    </select>
+                    {/* Time Slot Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Hour Window</label>
+                      <select 
+                        value={heatmapTimeFilter}
+                        onChange={(e) => setHeatmapTimeFilter(e.target.value)}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="All">All Hours</option>
+                        <option value="Morning">Morning (08:00 - 12:00)</option>
+                        <option value="Afternoon">Afternoon (14:00 - 18:00)</option>
+                      </select>
+                    </div>
+
+                    {/* Intensity Filter */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Intensity</label>
+                      <select 
+                        value={heatmapIntensityFilter}
+                        onChange={(e) => setHeatmapIntensityFilter(e.target.value)}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="All">All Levels</option>
+                        <option value="High">High Peak (≥ 80%)</option>
+                        <option value="Medium">Medium (50% - 79%)</option>
+                        <option value="Low">Low (&lt; 50%)</option>
+                      </select>
+                    </div>
+
+                    {/* Theme Color Picker */}
+                    <div className="flex flex-col min-w-0 w-full md:w-auto">
+                      <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-wider">Color Theme</label>
+                      <select 
+                        value={heatmapThemeFilter}
+                        onChange={(e) => setHeatmapThemeFilter(e.target.value)}
+                        className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full md:min-w-[120px]"
+                      >
+                        <option value="Indigo">Indigo Glow</option>
+                        <option value="Emerald">Emerald Forest</option>
+                        <option value="Rose">Rose Sunset</option>
+                        <option value="Amber">Amber Flame</option>
+                      </select>
+                    </div>
+
+                    {/* Reset button */}
+                    {isAnyFilterActive && (
+                      <div className="flex flex-col min-w-0 w-full md:w-auto">
+                        <button 
+                          onClick={() => {
+                            handleResetFilters();
+                            setIsTourPlaying(false);
+                          }}
+                          className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 transition active:scale-95 flex items-center justify-center space-x-1 h-[34px] w-full cursor-pointer"
+                        >
+                          <span>Reset Controls</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Time Slot Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Hour Window</label>
-                    <select 
-                      value={heatmapTimeFilter}
-                      onChange={(e) => setHeatmapTimeFilter(e.target.value)}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="All">All Hours</option>
-                      <option value="Morning">Morning (08:00 - 12:00)</option>
-                      <option value="Afternoon">Afternoon (14:00 - 18:00)</option>
-                    </select>
-                  </div>
-
-                  {/* Intensity Filter */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Intensity Threshold</label>
-                    <select 
-                      value={heatmapIntensityFilter}
-                      onChange={(e) => setHeatmapIntensityFilter(e.target.value)}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="All">All Levels</option>
-                      <option value="High">High Peak (≥ 80%)</option>
-                      <option value="Medium">Medium (50% - 79%)</option>
-                      <option value="Low">Low (&lt; 50%)</option>
-                    </select>
-                  </div>
-
-                  {/* Theme Color Picker */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Color Theme</label>
-                    <select 
-                      value={heatmapThemeFilter}
-                      onChange={(e) => setHeatmapThemeFilter(e.target.value)}
-                      className="text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[110px]"
-                    >
-                      <option value="Indigo">Indigo Glow</option>
-                      <option value="Emerald">Emerald Forest</option>
-                      <option value="Rose">Rose Sunset</option>
-                      <option value="Amber">Amber Flame</option>
-                    </select>
-                  </div>
-
-                  {/* Geographic Tour Autoplay */}
-                  <div className="flex flex-col">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Geographic Tour</label>
-                    <button
-                      onClick={() => setIsTourPlaying(!isTourPlaying)}
-                      className={`text-[11px] px-3 py-1.5 rounded font-bold transition flex items-center space-x-1.5 border h-[27px] self-end ${
-                        isTourPlaying 
-                          ? "bg-amber-500 text-white border-transparent hover:bg-amber-600 animate-pulse shadow-sm" 
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      {isTourPlaying ? (
-                        <>
-                          <Pause className="w-3 h-3 fill-current" />
-                          <span>Pause Tour</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-3 h-3 fill-current" />
-                          <span>Autoplay Segments</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Reset button */}
-                  {isAnyFilterActive && (
-                    <button 
-                      onClick={() => {
-                        handleResetFilters();
-                        setIsTourPlaying(false);
-                      }}
-                      className="self-end text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:underline px-2 py-1.5 rounded bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 transition active:scale-95 flex items-center space-x-1"
-                    >
-                      <span>Reset Controls</span>
-                    </button>
-                  )}
                 </div>
               </div>
+            </div>
+
+            {/* Mobile Scroll Assist Hint */}
+            <div className="block lg:hidden text-center text-[10px] text-slate-400 dark:text-slate-500 font-bold mb-3 bg-slate-50 dark:bg-slate-950/40 py-1.5 px-3 rounded-lg border border-dashed border-slate-200/60 dark:border-slate-800/60">
+              👋 Drag or swipe the grid horizontally to view all daily hours
             </div>
 
             <div className="overflow-x-auto">
@@ -3072,6 +3472,107 @@ export default function CPODashboard() {
           </div>
         );
       })()}
+
+      {/* File Anonymous Report Modal Dialog */}
+      <AnimatePresence>
+        {showNewCaseModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4"
+            >
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                <div className="flex items-center space-x-2">
+                  <ShieldAlert className="w-5 h-5 text-rose-500 animate-pulse" />
+                  <h4 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                    Submit Anonymous ER Dispute Case
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCaseModal(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateNewCase} className="space-y-4">
+                {/* Case Category */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block">Incident Category</label>
+                  <select
+                    value={newCaseCategory}
+                    onChange={(e) => setNewCaseCategory(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-2.5 px-3 rounded-lg font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-rose-500 animate-none"
+                  >
+                    <option>Inappropriate Communication</option>
+                    <option>Shift Scheduling Discrepancy</option>
+                    <option>Interpersonal Operational Friction</option>
+                    <option>Wage Transparency Inquiry</option>
+                    <option>Policy Interpretation Concern</option>
+                  </select>
+                </div>
+
+                {/* Case Severity */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block">Assigned Severity level</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(["Low", "Medium", "High", "Critical"] as const).map((sev) => (
+                      <button
+                        key={sev}
+                        type="button"
+                        onClick={() => setNewCaseSeverity(sev)}
+                        className={`py-1.5 text-[10px] font-bold rounded-lg border transition-all cursor-pointer ${
+                          newCaseSeverity === sev
+                            ? "bg-rose-600 border-rose-600 text-white shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-950/40 text-slate-500 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                        }`}
+                      >
+                        {sev}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Case Summary Description */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block">Incident Narrative Summary</label>
+                  <textarea
+                    rows={4}
+                    value={newCaseSummary}
+                    onChange={(e) => setNewCaseSummary(e.target.value)}
+                    placeholder="Enter anonymous details regarding dispute, branch location details, or behavioral incident timeline..."
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 rounded-lg font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                  />
+                  <span className="text-[9px] text-slate-400 block leading-tight">
+                    *ER filing is stored strictly anonymously. System metadata and user identity is decoupled prior to storage.
+                  </span>
+                </div>
+
+                {/* Form Buttons */}
+                <div className="flex space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCaseModal(false)}
+                    className="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs rounded-xl cursor-pointer transition text-center"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-1/2 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl cursor-pointer transition shadow-md"
+                  >
+                    Transmit Securely
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
