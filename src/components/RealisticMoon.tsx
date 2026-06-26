@@ -54,13 +54,20 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
         src={moonImageUrl}
         alt="Moon Texture"
         className="absolute inset-0 w-full h-full object-cover z-0"
-        style={{ scale: 1.33 }}
-        animate={{ scale: [1.33, 1.45, 1.33] }}
-        transition={{ duration: pulseDuration, repeat: Infinity, ease: "easeInOut" }}
+        style={{ scale: 1.33, transformOrigin: "center" }}
+        animate={{ 
+          scale: [1.33, 1.41, 1.35, 1.45, 1.33] 
+        }}
+        transition={{ 
+          duration: pulseDuration, 
+          repeat: Infinity, 
+          ease: "easeInOut",
+          times: [0, 0.18, 0.32, 0.5, 1]
+        }}
         referrerPolicy="no-referrer"
       />
 
-      {/* The SVG Shadow Overlay System */}
+      {/* The SVG Shadow Overlay System with synchronized breathing scale */}
       <svg 
         viewBox="0 0 100 100" 
         className="absolute inset-0 w-full h-full z-10 pointer-events-none"
@@ -73,13 +80,44 @@ export default function RealisticMoon({ age, size = 200, className = "", customI
           </filter>
         </defs>
         
-        <g filter="url(#moon-blur)">
+        <motion.g 
+          filter="url(#moon-blur)"
+          style={{ transformOrigin: "center" }}
+          animate={{
+            scale: [1, 1.06, 1.015, 1.09, 1],
+            opacity: [1, 0.90, 0.97, 0.84, 1]
+          }}
+          transition={{
+            duration: pulseDuration,
+            repeat: Infinity,
+            ease: "easeInOut",
+            times: [0, 0.18, 0.32, 0.5, 1]
+          }}
+        >
           <path d={getShadowPathStr()} fill="rgba(0, 0, 0, 0.85)" />
-        </g>
+        </motion.g>
       </svg>
       
-      {/* Glow / Atmospheric effect */}
-      <div className="absolute inset-0 z-20 pointer-events-none rounded-full ring-1 ring-white/10 shadow-[inset_0_0_50px_rgba(0,0,0,0.6)]" />
+      {/* Glow / Atmospheric effect with pulsating heartbeat halo */}
+      <motion.div 
+        className="absolute inset-0 z-20 pointer-events-none rounded-full ring-1 ring-white/15"
+        style={{ transformOrigin: "center" }}
+        animate={{
+          boxShadow: [
+            "inset 0 0 50px rgba(0,0,0,0.6), 0 0 10px rgba(255,255,255,0.1)",
+            "inset 0 0 40px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.25)",
+            "inset 0 0 46px rgba(0,0,0,0.55), 0 0 12px rgba(255,255,255,0.15)",
+            "inset 0 0 35px rgba(0,0,0,0.45), 0 0 26px rgba(255,255,255,0.35)",
+            "inset 0 0 50px rgba(0,0,0,0.6), 0 0 10px rgba(255,255,255,0.1)"
+          ]
+        }}
+        transition={{
+          duration: pulseDuration,
+          repeat: Infinity,
+          ease: "easeInOut",
+          times: [0, 0.18, 0.32, 0.5, 1]
+        }}
+      />
     </div>
   );
 }

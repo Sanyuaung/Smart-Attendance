@@ -32,7 +32,14 @@ const defaultSettings: Settings = {
   showLocation: true,
   showBackgroundImages: true,
   customGreetingsEnabled: true,
-  customGreetings: ["Have a great day!", "Stay positive!", "Keep up the good work!", "You are doing awesome!", "A successful day ahead!"],
+  customGreetings: [
+    "🗓️ Today Shift Assign : Normal 9 - 17",
+    "Have a great day!", 
+    "Stay positive!", 
+    "Keep up the good work!", 
+    "You are doing awesome!", 
+    "A successful day ahead!",
+  ],
   greetingTransitionSpeed: 3,
   moonCustomDateEnabled: false,
   moonCustomDate: "2026-06-19",
@@ -89,6 +96,8 @@ const defaultSettings: Settings = {
   moonCustomPhases: {},
   weatherTextColor: "#ffffff",
   locationTextColor: "#ffffff",
+  customWeatherEnabled: false,
+  customWeatherCondition: "Clear",
 };
 
 const defaultImages = [

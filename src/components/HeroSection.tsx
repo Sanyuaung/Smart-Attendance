@@ -654,29 +654,6 @@ export default function HeroSection() {
 
   return (
     <div className="flex flex-col items-center w-full">
-      {/* Greeting and Weather Display */}
-      <div className="flex flex-col items-center mb-8 text-center space-y-2">
-        <div className="h-10 flex items-center justify-center overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.h2 
-              key={activeGreeting.text + activeGreeting.emoji}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 100, damping: 15 }}
-              className="text-3xl md:text-4xl font-black text-[#0c3176] dark:text-white tracking-tighter flex items-center justify-center space-x-2"
-            >
-              <span>{activeGreeting.text}, {user.name.split(' ')[0]}</span>
-              {activeGreeting.emoji && <span className="inline-block transform origin-bottom hover:rotate-12 transition-transform">{activeGreeting.emoji}</span>}
-            </motion.h2>
-          </AnimatePresence>
-        </div>
-        
-        <div className="min-h-[1.5rem] flex flex-wrap items-center justify-center gap-2 mt-3 z-20 relative">
-          {/* Upper weather indicator removed to avoid redundancy as it is centered inside the biometric circle */}
-        </div>
-      </div>
-
       <div className="relative w-full py-4 flex flex-col items-center justify-center overflow-visible z-10">
         <div className="relative group cursor-pointer select-none">
           

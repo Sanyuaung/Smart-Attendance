@@ -613,6 +613,53 @@ switch (roundedPhase) {
               )}
             </div>
 
+            {/* Custom Weather Settings */}
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Custom Weather Override</span>
+                  <span className="text-[10px] text-slate-400">Manually control dynamic landscapes</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={localSettings.customWeatherEnabled || false} 
+                    onChange={(e) => handleUpdateLocalSettings({ customWeatherEnabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600" />
+                </label>
+              </div>
+              {localSettings.customWeatherEnabled && (
+                <div className="flex flex-col space-y-2 p-2.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Select Landscape / Atmosphere</span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { key: "Clear", label: "☀️ Clear" },
+                      { key: "Partly Cloudy", label: "⛅ Cloudy" },
+                      { key: "Foggy", label: "🌫️ Foggy" },
+                      { key: "Rainy", label: "🌧️ Rainy" },
+                      { key: "Snowy", label: "❄️ Snowy" },
+                      { key: "Stormy", label: "⛈️ Stormy" },
+                    ].map((w) => (
+                      <button
+                        key={w.key}
+                        type="button"
+                        onClick={() => handleUpdateLocalSettings({ customWeatherCondition: w.key as any })}
+                        className={`px-2 py-1.5 rounded-lg text-left text-xs font-medium transition duration-200 flex flex-col justify-between ${
+                          localSettings.customWeatherCondition === w.key
+                            ? "bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500"
+                            : "bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900"
+                        }`}
+                      >
+                        <span className="truncate">{w.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Show Location Widget</span>

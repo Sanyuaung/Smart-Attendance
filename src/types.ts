@@ -69,6 +69,8 @@ export interface Settings {
   moonCustomPhases?: Record<string, { image?: string, description?: string, customThemeId?: string, particleEmojis?: string }>;
   weatherTextColor?: string;
   locationTextColor?: string;
+  customWeatherEnabled?: boolean;
+  customWeatherCondition?: "Clear" | "Partly Cloudy" | "Foggy" | "Rainy" | "Snowy" | "Stormy";
 }
 
 export interface AppState {

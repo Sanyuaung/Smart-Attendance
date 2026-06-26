@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useStore } from '../store/useStore';
 
 export function useWeatherLocation() {
+  const { settings } = useStore();
   const [weatherStr, setWeatherStr] = useState<string>("Loading weather...");
   const [isDay, setIsDay] = useState<boolean>(true);
   const [conditionStr, setConditionStr] = useState<string>("Clear");
@@ -109,6 +111,21 @@ export function useWeatherLocation() {
     );
   }, []);
 
-  return { weatherStr, isDay, condition: conditionStr, temp, city, precip };
+  const finalCondition = settings.customWeatherEnabled && settings.customWeatherCondition
+    ? settings.customWeatherCondition
+    : conditionStr;
+
+  const finalWeatherStr = settings.customWeatherEnabled && settings.customWeatherCondition
+    ? `${temp ?? 26}°C • ${city || "Local City"} (${settings.customWeatherCondition})`
+    : weatherStr;
+
+  return { 
+    weatherStr: finalWeatherStr, 
+    isDay, 
+    condition: finalCondition, 
+    temp: temp ?? (settings.customWeatherEnabled ? 26 : null), 
+    city, 
+    precip 
+  };
 }
 

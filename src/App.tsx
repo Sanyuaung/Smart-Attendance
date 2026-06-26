@@ -7,6 +7,8 @@ import HeroSection from "./components/HeroSection";
 import SettingsModal from "./components/SettingsModal";
 import GuideModal from "./components/GuideModal";
 import DailyStatus from "./components/DailyStatus";
+import { useWeatherLocation } from "./hooks/useWeatherLocation";
+import WeatherBannerBackground from "./components/WeatherBannerBackground";
 
 export default function App() {
   const { settings, user, images, imageTransitionSpeed } = useStore();
@@ -14,6 +16,41 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentGreetingIndex, setCurrentGreetingIndex] = useState(0);
+  const { condition, isDay } = useWeatherLocation();
+
+  // Greeting cycling
+  const greetings = settings.customGreetings && settings.customGreetings.length > 0 
+    ? settings.customGreetings 
+    : ["Good Morning", "Good Afternoon", "Good Evening"];
+
+  useEffect(() => {
+    if (!settings.customGreetingsEnabled || greetings.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentGreetingIndex((prev) => (prev + 1) % greetings.length);
+    }, (settings.greetingTransitionSpeed || 3) * 1000);
+    return () => clearInterval(interval);
+  }, [greetings.length, settings.greetingTransitionSpeed, settings.customGreetingsEnabled]);
+
+  // Greeting text calculation
+  const getDynamicGreetingText = () => {
+    if (settings.customGreetingsEnabled) {
+      const g = greetings[currentGreetingIndex % greetings.length] || "Welcome Page";
+      // Try to extract emoji at the end
+      const match = g.match(/^(.*?)\s*([\p{Emoji_Presentation}\p{Extended_Pictographic}]+)?$/u);
+      return {
+        text: match?.[1] || g,
+        emoji: match?.[2] || ""
+      };
+    } else {
+      const hour = new Date().getHours();
+      if (hour < 12) return { text: "Good Morning", emoji: "🌤️" };
+      if (hour < 18) return { text: "Good Afternoon", emoji: "☀️" };
+      return { text: "Good Evening", emoji: "🌙" };
+    }
+  };
+
+  const activeGreeting = getDynamicGreetingText();
 
   // Handle HTMl dark mode class based on settings and time
   useEffect(() => {
@@ -126,9 +163,36 @@ export default function App() {
         </div>
 
         {/* Shift Banner */}
-        <div className="bg-[#0b2b6b] text-white rounded-lg p-4 flex items-center space-x-3 mb-10 shadow-md border border-[#061e52] dark:border-slate-800">
-          <Calendar className="w-6 h-6" />
-          <span className="font-medium text-sm md:text-base">Today Shift Assign : Normal 9 - 17</span>
+        <div className="text-white rounded-xl p-4 flex items-center justify-between mb-10 shadow-md border border-[#061e52] dark:border-slate-800 overflow-hidden relative min-h-[56px]">
+          <WeatherBannerBackground condition={condition} isDay={isDay} />
+          
+          <div className="flex items-center space-x-3.5 z-10 drop-shadow-md">
+            <div className="flex items-center overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeGreeting.text + activeGreeting.emoji}
+                  initial={{ y: 15, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -15, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 120, damping: 14 }}
+                  className="font-semibold text-sm md:text-base flex items-center space-x-2"
+                >
+                  <span>
+                    {activeGreeting.text.toLowerCase().includes("shift") || activeGreeting.text.toLowerCase().includes("calendar")
+                      ? activeGreeting.text
+                      : `${activeGreeting.text}, ${user.name.split(' ')[0]}`
+                    }
+                  </span>
+                  {activeGreeting.emoji && (
+                    <span className="inline-block transform origin-bottom hover:rotate-12 transition-transform select-none">
+                      {activeGreeting.emoji}
+                    </span>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none z-10" />
         </div>
 
         {/* Center Dashboard Area */}
